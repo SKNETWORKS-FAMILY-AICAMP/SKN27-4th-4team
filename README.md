@@ -53,13 +53,36 @@ HELBOTIN은 **헬스 보이 루틴**이라는 의미를 담은 AI 운동 루틴 
 
 ## 2. 팀 소개 (SKN27 4팀)
 
-| 이름   | 담당                                     |
-| ------ | ---------------------------------------- |
-| 이재희 | 팀장, 서비스 기획, 프론트엔드, AWS 배포  |
-| 김필주 | AI 루틴 추천, LangGraph 추천 워크플로우  |
-| 김경수 | RAG 기반 챗봇, pgvector 검색, SSE 응답   |
-| 주연중 | Neo4j GraphDB, 운동 관계 데이터 구축     |
-| 박창제 | 인증/인가, 사용자 관리, 게스트 세션 처리 |
+<table>
+  <tr>
+    <td align="center"><b>이재희 (팀장)</b></td>
+    <td align="center"><b>김필주</b></td>
+    <td align="center"><b>김경수</b></td>
+    <td align="center"><b>주연중</b></td>
+    <td align="center"><b>박창제</b></td>
+  </tr>
+  <tr>
+    <td align="center"><img width="140" height="160" alt="이재희" src="frontend/public/이재희.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="주연중" src="frontend/public/주연중.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="박창제" src="frontend/public/박창제.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="김필주" src="frontend/public/김필주.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="김경수" src="frontend/public/김경수.gif" /></td>
+  </tr>
+  <tr>
+    <td align="center">Project Manager</td>
+    <td align="center">AI 루틴 추천</td>
+    <td align="center">RAG 기반 챗봇</td>
+    <td align="center">GraphDB / 데이터 구조 구축</td>
+    <td align="center">Auth 인증 / 사용자 관리</td>
+  </tr>
+  <tr>
+   <td align="center">서비스 기획<br/>프론트엔드<br/>AWS 배포</td>
+  <td align="center">사용자 조건 분석<br/>맞춤 루틴 생성<br/>추천 결과 저장·리뷰</td>
+  <td align="center">운동 상담 챗봇<br/>RAG 검색 파이프라인<br/>SSE 스트리밍 응답</td>
+  <td align="center">Neo4j 그래프 구축<br/>운동 후보 조회<br/>유사·대체 운동 관계</td>
+  <td align="center">회원가입·로그인<br/>세션/JWT 관리<br/>게스트 사용자 처리</td>
+</tr>
+</table>
 
 ---
 
