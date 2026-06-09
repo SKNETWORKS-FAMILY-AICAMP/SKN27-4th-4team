@@ -72,3 +72,47 @@ QUERY_TYPE_ROUTES: dict[str, str] = {
     "recall":       "recall",
     "out_of_scope": "out_of_scope",
 }
+
+# ────────────────────────────────────────────
+# LLM 인증 게이트 (에픽 03)
+# ────────────────────────────────────────────
+# False(기본): JWT 검사 없이 LLM 실행 — 개발·게스트 테스트용
+# True: 세션 access_token JWT가 유효할 때만 LLM 실행
+CHATBOT_REQUIRE_AUTH = os.getenv("CHATBOT_REQUIRE_AUTH", "False") == "True"
+
+AUTH_REQUIRED_MESSAGE = (
+    "AI 답변을 이용하려면 로그인이 필요합니다. "
+    "로그인 후 다시 질문해 주세요."
+)
+
+LLM_ERROR_MESSAGE = "답변을 생성하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
+
+# ────────────────────────────────────────────
+# LLM provider (에픽 04)
+# ────────────────────────────────────────────
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai").strip().lower()
+EMBEDDING_PROVIDER = os.getenv("EMBEDDING_PROVIDER", "").strip().lower() or LLM_PROVIDER
+
+REMOTE_LLM_BASE_URL = os.getenv("REMOTE_LLM_BASE_URL", "").rstrip("/")
+REMOTE_LLM_MODEL = os.getenv("REMOTE_LLM_MODEL", "")
+REMOTE_EMBEDDING_MODEL = os.getenv("REMOTE_EMBEDDING_MODEL", "")
+REMOTE_API_KEY = os.getenv("REMOTE_API_KEY", "")
+
+
+# 모델 타입 검증
+_ALLOWED_LLM_PROVIDERS = frozenset({"openai", "remote", "groq", "ollama"})
+if LLM_PROVIDER not in _ALLOWED_LLM_PROVIDERS:
+    raise RuntimeError(
+        f"Invalid LLM_PROVIDER={LLM_PROVIDER!r}. "
+        f"Allowed: {sorted(_ALLOWED_LLM_PROVIDERS)}"
+    )
+if EMBEDDING_PROVIDER not in ("openai", "remote"):
+    raise RuntimeError(
+        f"Invalid EMBEDDING_PROVIDER={EMBEDDING_PROVIDER!r}. Allowed: openai, remote"
+    )
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY") or os.getenv("GROQ")
+GROQ_MODEL = os.getenv("GROQ_MODEL") or os.getenv("LLM_MODEL")
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL") or os.getenv("LLM_MODEL")
+

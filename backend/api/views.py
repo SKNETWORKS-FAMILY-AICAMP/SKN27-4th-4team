@@ -1,20 +1,101 @@
 import json
 import datetime
-from django.http import JsonResponse
+
+from django.http import JsonResponse, StreamingHttpResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db import transaction
+
 from .models import Exercise, ChatSession, ChatMessage, WeeklyScheduler, DailyRoutine
-from django.http import StreamingHttpResponse
-from .services.chatbot.chatbot import stream_answer
+from .services.actor_service import ActorError, resolve_actor, scheduler_filter_kwargs, scheduler_owner_filter, session_belongs_to_actor, session_owner_filter
+from .services.chatbot.llm_gate import stream_bot_content, should_run_llm
+from .services.chatbot.constants import AUTH_REQUIRED_MESSAGE
+from .services.routine_recommender import review_recommendation, start_recommendation, verify_thread_belongs_to_owner
 
 DIFF_NUM = {'초급': 1, '중급': 2, '고급': 3}
 
 
 # ─── Exercise ────────────────────────────────────────────────────────────────
 
+EXERCISE_LIST_FIELDS = (
+    'exercise_id', 'name_kor', 'name_eng', 'category',
+    'slug', 'tag', 'equipment', 'difficulty', 'difficulty_label',
+)
+
+EXERCISE_FULL_FIELDS = (
+    'exercise_id', 'name_kor', 'name_eng', 'category',
+    'slug', 'tag', 'description', 'target_primary', 'target_secondary',
+    'equipment', 'difficulty', 'difficulty_label', 'default_duration_min',
+    'estimated_cal_per_min', 'place_type', 'home_friendly', 'spine_loading',
+    'video_url', 'image_url', 'guide', 'starting_position', 'movement',
+    'breathing', 'caution', 'related_exercises',
+)
+
+
+def serialize_exercise(ex, full=False):
+    data = {
+        'id': ex['exercise_id'],
+        'name_kor': ex['name_kor'],
+        'name_eng': ex['name_eng'] or '',
+        'category': ex['category'],
+        'slug': ex['slug'] or '',
+        'tag': ex['tag'] or '',
+        'equipment': ex['equipment'] or '',
+        'difficulty': DIFF_NUM.get(ex['difficulty'], 1),
+        'difficulty_label': ex['difficulty_label'] or '',
+    }
+    if not full:
+        return data
+    data.update({
+        'description': ex['description'] or '',
+        'target_primary': ex['target_primary'],
+        'target_secondary': ex['target_secondary'] or [],
+        'default_duration_min': ex['default_duration_min'],
+        'estimated_cal_per_min': ex['estimated_cal_per_min'],
+        'place_type': ex['place_type'] or '',
+        'home_friendly': ex['home_friendly'] or '',
+        'spine_loading': ex['spine_loading'] or '',
+        'video_url': ex['video_url'] or '',
+        'image_url': ex['image_url'] or '',
+        'guide': ex['guide'],
+        'starting_position': ex['starting_position'] or '',
+        'movement': ex['movement'] or '',
+        'breathing': ex['breathing'] or '',
+        'caution': ex['caution'],
+        'related_exercises': ex['related_exercises'] or '',
+    })
+    return data
+
+
 class ExerciseListView(View):
+    def get(self, request):
+        full = request.GET.get('full') == '1'
+        fields = EXERCISE_FULL_FIELDS if full else EXERCISE_LIST_FIELDS
+        qs = Exercise.objects.values(*fields)
+        return JsonResponse([serialize_exercise(ex, full=full) for ex in qs], safe=False)
+
+
+class ExerciseFeaturedView(View):
+    def get(self, request):
+        try:
+            limit = min(max(int(request.GET.get('limit', 8)), 1), 24)
+        except ValueError:
+            limit = 8
+        qs = Exercise.objects.values(*EXERCISE_LIST_FIELDS).order_by('exercise_id')[:limit]
+        return JsonResponse([serialize_exercise(ex) for ex in qs], safe=False)
+
+
+class ExerciseDetailView(View):
+    def get(self, request, exercise_id):
+        try:
+            ex = Exercise.objects.values(*EXERCISE_FULL_FIELDS).get(exercise_id=exercise_id)
+        except Exercise.DoesNotExist:
+            return JsonResponse({'error': 'not found'}, status=404)
+        return JsonResponse(serialize_exercise(ex, full=True))
+
+
+class LegacyExerciseListView(View):
     def get(self, request):
         qs = Exercise.objects.values(
             'exercise_id', 'name_kor', 'name_eng', 'category',
@@ -62,61 +143,112 @@ class ExerciseListView(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class SessionListView(View):
     def get(self, request):
-        uuid = request.GET.get('device_uuid')
-        if not uuid:
-            return JsonResponse({'error': 'device_uuid required'}, status=400)
-        sessions = ChatSession.objects.filter(device_uuid=uuid).order_by('-created_at').values(
-            'session_id', 'title', 'created_at'
-        )
+        device_uuid = request.GET.get('device_uuid')
+        try:
+            actor = resolve_actor(request, device_uuid)
+        except ActorError as exc:
+            return JsonResponse({'error': str(exc)}, status=400)
+        
+        sessions = ChatSession.objects.filter(
+            **session_owner_filter(actor)
+        ).order_by('-created_at').values('session_id', 'title', 'created_at')
+
         return JsonResponse(list(sessions), safe=False)
+    
 
     def post(self, request):
         data = json.loads(request.body)
-        uuid = data.get('device_uuid')
+        device_uuid = data.get('device_uuid')
         title = data.get('title', '새 상담')
-        if not uuid:
-            return JsonResponse({'error': 'device_uuid required'}, status=400)
-        session = ChatSession.objects.create(device_uuid=uuid, title=title)
-        return JsonResponse({'session_id': session.session_id, 'title': session.title}, status=201)
+
+        try:
+            actor = resolve_actor(request, device_uuid)
+        except ActorError as exc:
+            return JsonResponse({'error': str(exc)}, status=400)
+        
+        create_kwargs = {'title':title}
+        if actor.mode == 'user':
+            create_kwargs['user_id'] = actor.user_id
+        if actor.device_uuid:
+            create_kwargs['device_uuid'] = actor.device_uuid
+
+        session = ChatSession.objects.create(**create_kwargs)
+
+        return JsonResponse(
+            {'session_id': session.session_id, 'title': session.title}, 
+            status=201
+        )
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SessionDetailView(View):
-    def _get_session(self, session_id, uuid):
+    def _get_session(self, session_id, actor):
+
+        # 채팅 사용자에게 세션이 있으면 셋팅 없으면 None
         try:
-            return ChatSession.objects.get(session_id=session_id, device_uuid=uuid)
+            session = ChatSession.objects.get(session_id=session_id)
         except ChatSession.DoesNotExist:
             return None
+        
+        # 세션에 주인이 없어도 None
+        if not session_belongs_to_actor(session, actor):
+            return None
+        
+        # 세션 확인되면 확인된 세션 리턴 
+        return session
 
     def patch(self, request, session_id):
         data = json.loads(request.body)
-        uuid = data.get('device_uuid')
-        session = self._get_session(session_id, uuid)
+        try:
+            actor = resolve_actor(request, data.get('device_uuid'))
+        except ActorError as exc:
+            return JsonResponse({'error': str(exc)}, status=400)
+        
+        session = self._get_session(session_id, actor)
         if not session:
             return JsonResponse({'error': 'not found'}, status=404)
+        
         if 'title' in data:
             session.title = data['title']
-            session.save(update_fields=['title'])
+            session.save()
         return JsonResponse({'session_id': session.session_id, 'title': session.title})
 
     def delete(self, request, session_id):
         data = json.loads(request.body)
-        uuid = data.get('device_uuid')
-        session = self._get_session(session_id, uuid)
+        try:
+            actor = resolve_actor(request, data.get('device_uuid'))
+        except ActorError as exc:
+            return JsonResponse({'error': str(exc)}, status=400)
+        
+        session = self._get_session(session_id, actor)
         if not session:
             return JsonResponse({'error': 'not found'}, status=404)
+        
         session.delete()
         return JsonResponse({'ok': True})
-
 
 # ─── Chat Messages ─────────────────────────────────────────────────────────────
 
 @method_decorator(csrf_exempt, name='dispatch')
 class MessageListView(View):
     def get(self, request, session_id):
-        uuid = request.GET.get('device_uuid')
-        if not ChatSession.objects.filter(session_id=session_id, device_uuid=uuid).exists():
+
+        # device_uuid로 사용자 확인, 없으면 400
+        try:
+            actor = resolve_actor(request, request.GET.get('device_uuid'))
+        except ActorError as exc:
+            return JsonResponse({'error': str(exc)}, status=400)
+
+        # 세션 확인, 없으면 404 
+        try:
+            session = ChatSession.objects.get(session_id=session_id)
+        except ChatSession.DoesNotExist:
             return JsonResponse({'error': 'not found'}, status=404)
+
+        # 세션에 주인이 없어도 404 (핼퍼 함수로 찾음)
+        if not session_belongs_to_actor(session, actor):
+            return JsonResponse({'error': 'not found'}, status=404)
+
         messages = ChatMessage.objects.filter(session_id=session_id).order_by('created_at').values(
             'message_id', 'sender', 'content', 'created_at'
         )
@@ -124,8 +256,21 @@ class MessageListView(View):
 
     def post(self, request, session_id):
         data = json.loads(request.body)
-        uuid = data.get('device_uuid')
-        if not ChatSession.objects.filter(session_id=session_id, device_uuid=uuid).exists():
+
+        # device_uuid로 사용자 확인, 없으면 400
+        try: 
+            actor = resolve_actor(request, data.get('device_uuid'))
+        except ActorError as exc:
+            return JsonResponse({'error': str(exc)}, status=400)
+
+        # 세션 확인, 없으면 404 
+        try:
+            session = ChatSession.objects.get(session_id=session_id)
+        except ChatSession.DoesNotExist:
+            return JsonResponse({'error': 'not found'}, status=404)
+
+        # 세션에 주인이 없어도 404 (핼퍼 함수로 찾음)
+        if not session_belongs_to_actor(session, actor):
             return JsonResponse({'error': 'not found'}, status=404)
 
         content = data.get('content', '').strip()
@@ -143,7 +288,7 @@ class MessageListView(View):
             full_answer = ""
 
             try:
-                for token_type, token_content in stream_answer(content, session_id):
+                for token_type, token_content in stream_bot_content(request, content, session_id):
                     if token_type == "token":
                         # SSE 형식: data: {"type": "token", "content": "..."}\n\n
                         yield f"data: {json.dumps({'type': 'token', 'content': token_content}, ensure_ascii=False)}\n\n"
@@ -185,24 +330,25 @@ def get_date_for_dow(year, week_number, dow_kor):
 class RoutineView(View):
     def get(self, request):
         device_uuid = request.GET.get('device_uuid')
-        if not device_uuid:
-            return JsonResponse({'error': 'device_uuid is required'}, status=400)
+
+        try:
+            actor = resolve_actor(request, device_uuid)
+        except ActorError as exc:
+            return JsonResponse({'error': str(exc)}, status=400)
         
         now = datetime.datetime.now()
         current_year, current_week, _ = now.isocalendar()
-        
+
         year_str = request.GET.get('year')
         week_str = request.GET.get('week_number')
-        
+
         target_year = int(year_str) if year_str else current_year
         target_week = int(week_str) if week_str else current_week
-        
+
         scheduler = WeeklyScheduler.objects.filter(
-            device_uuid=device_uuid,
-            year=target_year,
-            week_number=target_week
+            **scheduler_filter_kwargs(actor, target_year, target_week)
         ).order_by('-created_at').first()
-        
+
         if scheduler:
             routines_qs = DailyRoutine.objects.filter(scheduler=scheduler).order_by('scheduled_date', 'routine_order')
             
@@ -237,6 +383,10 @@ class RoutineView(View):
                     'eq': r.exercise.equipment if r.exercise else 'body',
                     'detail': r.exercise.guide if r.exercise else '',
                     'category': r.exercise.category if r.exercise else '',
+                    'video_url': r.exercise.video_url if r.exercise else '',
+                    'image_url': r.exercise.image_url if r.exercise else '',
+                    'caution': r.exercise.caution if r.exercise else '',
+                    'spine_loading': r.exercise.spine_loading if r.exercise else '',
                     'is_completed': r.is_completed
                 }
                 workout_routine[day].append(ex_data)
@@ -258,7 +408,7 @@ class RoutineView(View):
             
         else:
             latest_scheduler = WeeklyScheduler.objects.filter(
-                device_uuid=device_uuid
+                **scheduler_owner_filter(actor)
             ).order_by('-created_at').first()
             
             preferences = None
@@ -293,9 +443,11 @@ class RoutineView(View):
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
             
         device_uuid = data.get('device_uuid')
-        if not device_uuid:
-            return JsonResponse({'error': 'device_uuid is required'}, status=400)
-            
+        try:
+            actor = resolve_actor(request, device_uuid)
+        except ActorError as exc:
+            return JsonResponse({'error': str(exc)}, status=400)
+
         year = data.get('year')
         week_number = data.get('week_number')
         
@@ -322,20 +474,15 @@ class RoutineView(View):
         
         with transaction.atomic():
             schedulers = WeeklyScheduler.objects.filter(
-                device_uuid=device_uuid,
-                year=year,
-                week_number=week_number
+                **scheduler_filter_kwargs(actor, year, week_number)
             ).order_by('-created_at')
             
             created = False
             if schedulers.exists():
                 scheduler = schedulers[0]
-                if len(schedulers) > 1:
-                    WeeklyScheduler.objects.filter(
-                        device_uuid=device_uuid,
-                        year=year,
-                        week_number=week_number
-                    ).exclude(scheduler_id=scheduler.scheduler_id).delete()
+                # unique 보장을 위해 중복 제거 
+                dup_filter = scheduler_filter_kwargs(actor, year, week_number)
+                WeeklyScheduler.objects.filter(**dup_filter).exclude(scheduler_id=scheduler.scheduler_id).delete()
                 
                 scheduler.split_style = split_style
                 scheduler.goal = goal
@@ -343,10 +490,14 @@ class RoutineView(View):
                 scheduler.pain_parts = pain_parts
                 scheduler.work_days = work_days_db
                 scheduler.weekly_review = weekly_review
+                
+                # 로그인 된 상태인 경우 user_id를 저장
+                if actor.mode == 'user':
+                    scheduler.user_id = actor.user_id
                 scheduler.save()
+                    
             else:
-                scheduler = WeeklyScheduler.objects.create(
-                    device_uuid=device_uuid,
+                create_kwargs = dict(
                     year=year,
                     week_number=week_number,
                     split_style=split_style,
@@ -356,6 +507,14 @@ class RoutineView(View):
                     work_days=work_days_db,
                     weekly_review=weekly_review
                 )
+                # 유저가 있으면 유저 id 추가 
+                if actor.mode == 'user':
+                    create_kwargs['user_id'] = actor.user_id
+                # device_uuid가 있으면 추가 
+                if actor.device_uuid:
+                    create_kwargs['device_uuid'] = actor.device_uuid
+
+                scheduler = WeeklyScheduler.objects.create(**create_kwargs)
                 created = True
             
             DailyRoutine.objects.filter(scheduler=scheduler).delete()
@@ -366,9 +525,12 @@ class RoutineView(View):
                 
                 for idx, ex in enumerate(exercises_list):
                     is_completed = ex.get('is_completed', False) or ex.get('completed', False)
+                    exercise_id = ex.get('id') or ex.get('exercise_id')
+                    if not exercise_id:
+                        continue
                     
                     try:
-                        ex_obj = Exercise.objects.get(exercise_id=ex['id'])
+                        ex_obj = Exercise.objects.get(exercise_id=exercise_id)
                     except Exercise.DoesNotExist:
                         continue
                         
@@ -391,3 +553,67 @@ class RoutineView(View):
             'scheduler_id': scheduler.scheduler_id,
             'created': created
         }, status=201 if created else 200)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class RoutineRecommendView(View):
+    def post(self, request):
+        # 전달된 데이터 파싱 
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'ok': False, 'status': 'failed', 'message': 'Invalid JSON'}, status=400)
+        # 사용자 정보 확인 
+        try:
+            actor = resolve_actor(request, data.get("device_uuid"))
+        except ActorError as exc:
+            return JsonResponse({"ok": False, "status": "failed", "message": str(exc)}, status=400)
+
+        # 추천 세션 생성 전 LLM 실행 여부 확인
+        if not should_run_llm(request):
+            return JsonResponse({"ok": False, "status": "failed", "message": AUTH_REQUIRED_MESSAGE}, status=400)
+
+        # 추천 세션 생성
+        result = start_recommendation(data, user_id=_recommendation_user_id(actor))
+        return JsonResponse(result, status=200 if result.get('ok') else 400)
+
+
+# 유저 로그인 중이면 유저 id, 아니면 device_uuid 리턴 하는 유틸 함수 
+def _recommendation_user_id(actor):
+    if actor.mode == "user":
+        return str(actor.user_id)
+    return str(actor.device_uuid)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class RoutineRecommendReviewView(View):
+    def post(self, request):
+        # 전달된 데이터 파싱 
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'ok': False, 'status': 'failed', 'message': 'Invalid JSON'}, status=400)
+
+        # 사용자 정보 확인
+        try:
+            actor = resolve_actor(request, data.get("device_uuid"))
+        except ActorError as exc:
+            return JsonResponse({'ok': False, 'status': 'failed', 'message': str(exc)}, status=400)
+
+        # 추천 세션 주인 확인
+        thread_id = data.get('thread_id', '')
+        owner_key = _recommendation_user_id(actor)
+        if not verify_thread_belongs_to_owner(thread_id, owner_key):
+            return JsonResponse({'ok': False, 'status': 'failed', 'message': '이 추천 세션에 접근할 수 없습니다'}, status=403)
+
+        # 추천 세션 리뷰 전 LLM 실행 여부 확인
+        if not should_run_llm(request):
+            return JsonResponse({"ok": False, "status": "failed", "message": AUTH_REQUIRED_MESSAGE}, status=400)
+        
+        # 추천 세션 리뷰 저장
+        result = review_recommendation(
+            thread_id=thread_id,
+            decision=data.get('decision', 'revise'),
+            feedback=data.get('feedback', ''),
+        )
+        return JsonResponse(result, status=200 if result.get('ok') else 400)
