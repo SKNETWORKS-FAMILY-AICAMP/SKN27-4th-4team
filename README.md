@@ -45,11 +45,11 @@ HELBOTIN은 이러한 문제를 해결하고, 운동 초보자부터 숙련자�
     <td align="center"><b>박창제</b></td>
   </tr>
   <tr>
-    <td align="center"><img width="120" height="140" alt="이재희" src="frontend/public/이재희.gif" /></td>
-    <td align="center"><img width="120" height="140" alt="김필주" src="frontend/public/김필주.gif" /></td>
-    <td align="center"><img width="120" height="140" alt="김경수" src="frontend/public/김경수.gif" /></td>
-    <td align="center"><img width="120" height="140" alt="주연중" src="frontend/public/주연중.gif" /></td>
-    <td align="center"><img width="120" height="140" alt="박창제" src="frontend/public/박창제.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="이재희" src="frontend/public/이재희.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="김필주" src="frontend/public/김필주.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="김경수" src="frontend/public/김경수.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="주연중" src="frontend/public/주연중.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="박창제" src="frontend/public/박창제.gif" /></td>
   </tr>
   <tr>
     <td align="center">팀장<br/>Project Manager</td>
