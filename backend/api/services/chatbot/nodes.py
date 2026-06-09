@@ -197,20 +197,23 @@ def retrieve_general(state: RAGChatState) -> RAGChatState:
     #   하체 / 코어 / 등 / 어깨 / 가슴 / 스트레칭 / 유산소 / 이두 / 삼두 / 전완근
     # ('팔'·'전신' 같은 DB에 없는 값을 쓰면 필터가 0건→무필터 폴백으로 카테고리가 섞임)
     filter_prompt = ChatPromptTemplate.from_template(
-        "다음 질문에서 운동 카테고리와 장비 힌트를 추출하세요.\n"
+        "다음 질문에서 운동 카테고리·장비·특정 운동명 힌트를 추출하세요.\n"
         "카테고리는 다음 중에서만 고르세요: 가슴, 등, 어깨, 하체, 코어, 스트레칭, 유산소, 이두, 삼두, 전완근.\n"
         "- '팔' 운동은 이두/삼두/전완근에 해당하니 관련 카테고리를 쉼표로 모두 적으세요 (예: 이두,삼두,전완근).\n"
         "- 여러 부위가 해당하면 쉼표로 나열하세요. 해당 없으면 빈 값.\n"
-        "장비가 '맨몸' 또는 '장비 없음'인 경우 equipment=body 로 답하세요.\n\n"
+        "장비가 '맨몸' 또는 '장비 없음'인 경우 equipment=body 로 답하세요.\n"
+        "특정 운동 하나를 명확히 가리키면 그 운동명을 exercise에 적고, 추천·여러 운동을 묻는 질문이면 빈 값으로 두세요.\n\n"
         "질문: {question}\n\n"
         "아래 형식으로만 답하세요 (값이 없으면 빈 칸):\n"
         "category: (카테고리)\n"
-        "equipment: (장비)"
+        "equipment: (장비)\n"
+        "exercise: (특정 운동명)"
     )
     hint_text = (filter_prompt | llm | StrOutputParser()).invoke({"question": search_query}).strip()
 
     # 힌트 파싱
     where_parts, params = [], []
+    exercise_name = ""
     for line in hint_text.splitlines():
         if line.startswith("category:"):
             val = line.split(":", 1)[1].strip()
@@ -225,6 +228,17 @@ def retrieve_general(state: RAGChatState) -> RAGChatState:
             if val:
                 where_parts.append("equipment ILIKE %s")
                 params.append(f"%{val}%")
+        elif line.startswith("exercise:"):
+            exercise_name = line.split(":", 1)[1].strip()
+
+    # 단일 운동을 가리키는 질문이면 정확검색으로 위임
+    # (벡터 검색이 '데드리프트'를 '스태거드/트랩바 데드리프트' 변형으로 잘못 뽑는 것 방지)
+    if exercise_name:
+        kw_rows = keyword_search(exercise_name, limit=RETRIEVE_SPECIFIC_LIMIT)
+        if kw_rows:
+            docs, sources = rows_to_documents(kw_rows)
+            print(f"[retrieve_general] 단일 운동 '{exercise_name}' → 정확검색 위임 ({len(docs)})")
+            return {**state, "search_query": search_query, "retrieved_docs": docs, "sources": sources}
 
     where_clause = " AND ".join(where_parts) if where_parts else ""
     rows = vector_search(search_query, limit=RETRIEVE_LIMIT, where_clause=where_clause, params=params if params else None)

@@ -47,7 +47,7 @@ RERANK_MAX_LENGTH = 512                    # 입력 텍스트 최대 토큰 길�
 RERANK_DEVICE = "cpu"                      # GPU 사용 시 "cuda"로 변경
 RERANK_CACHE_FOLDER = os.getenv("RERANK_CACHE_FOLDER", "/tmp/routinegraph-models")
 RERANK_TOP_N = 5                           # rerank 후 최종 사용할 문서 수
-MAX_HISTORY_TURNS = 5       # 대화 히스토리 최대 유지 턴 수
+MAX_HISTORY_TURNS = 15       # 대화 히스토리 최대 유지 턴 수
 
 # ────────────────────────────────────────────
 # 질문 분류 설정
