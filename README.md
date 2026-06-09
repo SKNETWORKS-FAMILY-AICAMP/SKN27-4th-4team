@@ -681,7 +681,7 @@ docker compose up --build
 docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 ```
 
-배포 상세 절차는 [AWS_DEPLOY.md](docs/AWS_DEPLOY.md)를 참고합니다.
+배포 상세 절차는 [AWS_DEPLOY.md](AWS_DEPLOY.md)를 참고합니다.
 
 ---
 
@@ -729,7 +729,7 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 
 ## 22. 참고 문서
 
-- [AWS_DEPLOY.md](docs/AWS_DEPLOY.md)
+- [AWS_DEPLOY.md](AWS_DEPLOY.md)
 - [docs/ROUTINE_RECOMMENDATION_SERVICE.md](docs/ROUTINE_RECOMMENDATION_SERVICE.md)
 - [docs/RAG*프로젝트*정리.md](docs/RAG_프로젝트_정리.md)
 - [docs/RAG*챗봇*기술명세.md](docs/RAG_챗봇_기술명세.md)
