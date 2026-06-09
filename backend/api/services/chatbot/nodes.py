@@ -4,7 +4,7 @@ from langchain_core.messages import AIMessage
 
 from .state import RAGChatState
 from .llm import get_llm, get_classify_llm
-from .db import vector_search, keyword_search, rows_to_documents, get_muscles_by_body_part
+from .db import vector_search, keyword_search, rows_to_documents, get_muscles_by_body_part, load_history
 from .constants import ENABLE_RERANK, RETRIEVE_LIMIT, RETRIEVE_SPECIFIC_LIMIT, MAX_HISTORY_TURNS, QUERY_TYPES, OUT_OF_SCOPE_MESSAGE, RERANK_MODEL, RERANK_MAX_LENGTH, RERANK_DEVICE, RERANK_CACHE_FOLDER, RERANK_TOP_N
 
 llm = get_llm()
@@ -76,7 +76,8 @@ def _rewrite_query(state: RAGChatState) -> str:
 
     prompt = ChatPromptTemplate.from_template(
         "이전 대화를 참고해 현재 질문을 그 자체로 이해 가능한 '검색용 질문'으로 다시 쓰세요.\n"
-        "- '그거', '방금 그 운동', '아까 그것' 같은 지시 표현을 이전 대화가 가리키는 실제 운동/대상으로 바꾸세요.\n"
+        "- '그거', '방금 그 운동', '아까 그것' 같은 지시 표현은 이전 대화가 가리키는 실제 운동명으로 바꾸세요.\n"
+        "- '처음/첫 번째/두 번째/마지막에 물어본(언급한) 운동' 같은 순서 표현도 이전 대화에서 해당하는 실제 운동명으로 바꾸세요.\n"
         "- 이미 명확하거나 이전 대화와 무관하면 현재 질문을 그대로 두세요.\n"
         "- 다시 쓴 질문 한 문장만 출력하세요. 설명·따옴표 금지.\n\n"
         "[이전 대화]\n{history}\n\n"
@@ -143,6 +144,44 @@ def out_of_scope(state: RAGChatState) -> RAGChatState:
         "answer": OUT_OF_SCOPE_MESSAGE,
         "messages": [AIMessage(content=OUT_OF_SCOPE_MESSAGE)],
     }
+
+
+# ────────────────────────────────────────────
+# 노드 1-2: recall
+# 대화 내용 자체(이름·순서 등)를 묻는 질문 → 검색 없이 히스토리로만 답
+# (검색을 타지 않으므로 운동 데이터가 답을 오염시키지 않음)
+# ────────────────────────────────────────────
+def recall(state: RAGChatState) -> RAGChatState:
+    """회상/메타 질문: 운동 데이터 검색 없이 '전체 대화 기록'만으로 답한다.
+
+    '내가 처음 물어본 운동이 뭐야?'처럼 답이 대화 내용 자체인 질문 전용.
+    MAX_HISTORY_TURNS 잘림의 영향을 받지 않도록 session_id로 전체 히스토리를 조회한다.
+    """
+    question = state["question"]
+    session_id = state.get("session_id")
+
+    history = load_history(session_id) if session_id else []
+    lines = []
+    for h in history:
+        role = "사용자" if h["sender"] == "user" else "AI"
+        lines.append(f"{role}: {h['content']}")
+    history_text = "\n".join(lines) if lines else "(이전 대화 없음)"
+
+    prompt = ChatPromptTemplate.from_template(
+        "당신은 AI 운동 챗봇입니다. 아래 [대화 내용]만 근거로 사용자 질문에 답하세요.\n"
+        "- 운동 데이터를 검색하거나 새로 지어내지 말고, 대화에서 실제로 오간 내용(어떤 운동을 물었는지, 순서 등)만으로 답합니다.\n"
+        "- 운동 이름을 임의로 바꾸거나 비슷한 변형으로 대체하지 마세요. 대화에 적힌 이름 그대로 답하세요.\n"
+        "- 대화에 근거가 없으면 모른다고 답하세요.\n\n"
+        "[대화 내용]\n{history}\n\n"
+        "질문: {question}"
+    )
+    answer = (prompt | llm | StrOutputParser()).invoke({
+        "history": history_text,
+        "question": question,
+    })
+
+    print("[recall] 히스토리 기반 답변 생성 완료")
+    return {**state, "answer": answer, "messages": [AIMessage(content=answer)]}
 
 
 # ────────────────────────────────────────────
