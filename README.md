@@ -228,17 +228,133 @@ HELBOTIN은 운동은 꾸준히 하고 싶지만, 매주 어떤 루틴을 해야
 - `backend/db/build_graph.py`
 
 **ERD 구성 요소**
+```mermaid
+erDiagram
+    USERS ||--o{ USER_PAIN_LOGS : has
+    USERS ||--o{ CHAT_SESSIONS : owns
+    USERS ||--o{ WEEKLY_SCHEDULERS : owns
 
-- 사용자 (`users`)
-- 통증 로그 (`user_pain_logs`)
-- 운동 마스터 (`exercises`)
-- 상담 세션 (`chat_sessions`)
-- 상담 메시지 (`chat_messages`)
-- 주간 루틴 스케줄러 (`weekly_schedulers`)
-- 일별 루틴 (`daily_routines`)
-- 근육 마스터 (`muscles`)
-- 근육 관계 (`muscle_relations`)
-- 운동-근육 브릿지 (`exercise_muscles`)
+    CHAT_SESSIONS ||--o{ CHAT_MESSAGES : contains
+    CHAT_SESSIONS ||--o{ WEEKLY_SCHEDULERS : converts_to
+
+    WEEKLY_SCHEDULERS ||--o{ DAILY_ROUTINES : includes
+    EXERCISES ||--o{ DAILY_ROUTINES : assigned
+
+    EXERCISES ||--o{ EXERCISE_MUSCLES : maps
+    MUSCLES ||--o{ EXERCISE_MUSCLES : used_by
+
+    MUSCLES ||--o{ MUSCLE_RELATIONS : source
+    MUSCLES ||--o{ MUSCLE_RELATIONS : target
+
+    USERS {
+        int user_id PK
+        varchar email
+        varchar password_hash
+        varchar nickname
+        enum fitness_level
+        timestamp created_at
+    }
+
+    USER_PAIN_LOGS {
+        int pain_id PK
+        int user_id FK
+        uuid device_uuid
+        varchar body_part
+        smallint severity
+        timestamp logged_at
+    }
+
+    EXERCISES {
+        int exercise_id PK
+        varchar name_kor
+        varchar name_eng
+        varchar category
+        varchar target_primary
+        jsonb target_secondary
+        varchar equipment
+        enum difficulty
+        int default_duration_min
+        varchar video_url
+        text guide
+        text caution
+        vector embedding
+    }
+
+    CHAT_SESSIONS {
+        int session_id PK
+        int user_id FK
+        uuid device_uuid
+        varchar title
+        jsonb extracted_conditions
+        boolean is_converted
+        timestamp created_at
+    }
+
+    CHAT_MESSAGES {
+        int message_id PK
+        int session_id FK
+        enum sender
+        text content
+        timestamp created_at
+    }
+
+    WEEKLY_SCHEDULERS {
+        int scheduler_id PK
+        int user_id FK
+        uuid device_uuid
+        int session_id FK
+        int year
+        int week_number
+        varchar split_style
+        varchar goal
+        smallint session_min
+        jsonb pain_parts
+        jsonb work_days
+        text weekly_review
+        timestamp created_at
+    }
+
+    DAILY_ROUTINES {
+        int daily_routine_id PK
+        int scheduler_id FK
+        int exercise_id FK
+        date scheduled_date
+        varchar day_of_week
+        float routine_order
+        int recommended_sets
+        int recommended_reps
+        int target_sets
+        int target_reps
+        boolean is_custom_added
+        boolean is_completed
+        text daily_issue
+        timestamp updated_at
+    }
+
+    MUSCLES {
+        int muscle_id PK
+        varchar name_kor
+        varchar name_eng
+        varchar muscle_group
+        text action_text
+        text origin
+        text insertion
+    }
+
+    MUSCLE_RELATIONS {
+        int relation_id PK
+        int source_muscle FK
+        int target_muscle FK
+        varchar relation_type
+    }
+
+    EXERCISE_MUSCLES {
+        int exercise_id FK
+        int muscle_id FK
+        varchar role
+    }
+
+```
 
 ---
 
