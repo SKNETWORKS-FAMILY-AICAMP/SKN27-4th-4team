@@ -11,7 +11,6 @@
 
 - Web: [https://sk-camp.cloud](https://sk-camp.cloud)
 - API Docs: README의 [API 명세서](#15-api-명세서) 참고
-- Video: 추후 시연 영상 링크 추가 예정
 
 ---
 
