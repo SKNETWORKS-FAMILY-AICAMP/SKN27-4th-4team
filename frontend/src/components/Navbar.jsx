@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Dumbbell } from 'lucide-react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { getMe, logout } from '../api/auth'
+import BrandIcon from './BrandIcon'
 
 const links = [
     { label: '운동 백과', to: '/exercise' },
@@ -13,6 +13,8 @@ export default function Navbar() {
     const [user, setUser] = useState(null)
     const [scrolled, setScrolled] = useState(false)
     const [hoveredLink, setHoveredLink] = useState(null)
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+    const [isLoggingOut, setIsLoggingOut] = useState(false)
     const { pathname } = useLocation()
     const navigate = useNavigate()
     const isExercisePage = pathname === '/exercise'
@@ -31,13 +33,21 @@ export default function Navbar() {
     }, [])
 
     const handleLogout = async () => {
-        await logout()
-        setUser(null)
-        navigate('/')
+        if (isLoggingOut) return
+        setIsLoggingOut(true)
+        try {
+            await logout()
+            setUser(null)
+            setShowLogoutConfirm(false)
+            navigate('/')
+        } finally {
+            setIsLoggingOut(false)
+        }
     }
 
     return (
-        <nav style={{
+        <>
+            <nav style={{
             position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
             padding: '0 52px',
             height: 70,
@@ -57,17 +67,12 @@ export default function Navbar() {
                     textDecoration: 'none',
                 }}
             >
-                <div style={{
-                    width: 36,
-                    height: 36,
-                    background: 'linear-gradient(135deg, #FFD700, #C8A200)',
-                    borderRadius: 2,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 0 18px rgba(255,215,0,0.18)',
-                    transition: 'box-shadow 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                }}
+                <BrandIcon
+                    size={36}
+                    style={{
+                        boxShadow: '0 0 18px rgba(255,215,0,0.18)',
+                        transition: 'box-shadow 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    }}
                     onMouseEnter={e => {
                         e.currentTarget.style.boxShadow = '0 0 32px rgba(255,215,0,0.5)'
                         e.currentTarget.style.transform = 'scale(1.06)'
@@ -76,9 +81,7 @@ export default function Navbar() {
                         e.currentTarget.style.boxShadow = '0 0 18px rgba(255,215,0,0.18)'
                         e.currentTarget.style.transform = 'none'
                     }}
-                >
-                    <Dumbbell size={19} color="#000" strokeWidth={2.8} />
-                </div>
+                />
                 <span style={{ fontFamily: 'Bebas Neue', fontSize: 24, letterSpacing: 2, color: '#FFD700' }}>HELBOTIN</span>
             </Link>
 
@@ -125,7 +128,7 @@ export default function Navbar() {
                             {user.nickname}님
                         </span>
                         <button
-                            onClick={handleLogout}
+                            onClick={() => setShowLogoutConfirm(true)}
                             style={{
                                 background: 'rgba(255,215,0,0.1)',
                                 border: '1px solid rgba(255,215,0,0.35)',
@@ -195,6 +198,57 @@ export default function Navbar() {
                     </>
                 )}
             </div>
-        </nav>
+            </nav>
+
+            {showLogoutConfirm && (
+                <div onClick={() => !isLoggingOut && setShowLogoutConfirm(false)} style={{
+                    position: 'fixed', inset: 0, zIndex: 3000,
+                    background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+                }}>
+                    <div onClick={e => e.stopPropagation()} style={{
+                        background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: 18, padding: '32px 28px 26px', maxWidth: 380, width: '100%',
+                        boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
+                        animation: 'float-up 0.2s ease',
+                    }}>
+                        <div style={{ fontSize: 12, letterSpacing: 2, color: '#FFD700', fontWeight: 800, marginBottom: 14 }}>NOTICE</div>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: '#E2E2E2', marginBottom: 12 }}>
+                            로그아웃할까요?
+                        </div>
+                        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', lineHeight: 1.75, marginBottom: 24 }}>
+                            현재 계정에서 로그아웃됩니다.<br />
+                            정말 로그아웃하시겠습니까?
+                        </p>
+                        <div style={{ display: 'flex', gap: 10 }}>
+                            <button
+                                type="button"
+                                disabled={isLoggingOut}
+                                onClick={() => setShowLogoutConfirm(false)}
+                                style={{
+                                    flex: 1, padding: '11px 0', borderRadius: 10,
+                                    background: 'transparent', border: '1px solid rgba(255,255,255,0.12)',
+                                    color: 'rgba(255,255,255,0.5)', fontSize: 13, cursor: isLoggingOut ? 'default' : 'pointer',
+                                }}
+                            >
+                                취소
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isLoggingOut}
+                                onClick={handleLogout}
+                                style={{
+                                    flex: 1, padding: '11px 0', borderRadius: 10,
+                                    background: 'linear-gradient(135deg, #FFD700, #C8A200)', border: 'none',
+                                    color: '#000', fontSize: 13, fontWeight: 800, cursor: isLoggingOut ? 'default' : 'pointer',
+                                }}
+                            >
+                                {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     )
 }

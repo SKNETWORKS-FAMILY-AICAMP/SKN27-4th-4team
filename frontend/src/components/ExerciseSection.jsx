@@ -14,11 +14,16 @@ const EQUIPMENT_LABEL = {
   pull_up_bar: '철봉', dips_bar: '딥스바', normal: '일반',
   foamroller: '폼롤러', massageball: '마사지볼',
 }
-function gifUrl(ex) {
-  return `/gifs/${encodeURIComponent(ex.category)}/${ex.id}_${encodeURIComponent(ex.name_kor)}.gif`
+function normalizeMediaUrl(url) {
+  const value = String(url || '').trim()
+  if (!value) return ''
+  if (/^https?:\/\//i.test(value) || value.startsWith('/')) return value
+  return `/${value.replace(/^\/+/, '')}`
 }
 
 function videoUrl(ex) {
+  const fromApi = normalizeMediaUrl(ex.video_url)
+  if (fromApi) return fromApi
   return `/videos/${encodeURIComponent(ex.category)}/${ex.id}_${encodeURIComponent(ex.name_kor)}.mp4`
 }
 
@@ -149,6 +154,7 @@ function MiniCard({ ex, onClick }) {
 function DetailModal({ ex, onClose }) {
   const color = CAT_COLOR[ex.category] || '#FFD700'
   const [tab, setTab] = useState('guide')
+  const [videoOk, setVideoOk] = useState(true)
 
   useEffect(() => {
     const esc = e => { if (e.key === 'Escape') onClose() }
@@ -180,11 +186,20 @@ function DetailModal({ ex, onClose }) {
         display: 'flex', boxShadow: `0 40px 100px rgba(0,0,0,0.7)`,
       }}>
         <div style={{ width: 320, flexShrink: 0, background: '#0A0A0A', position: 'relative' }}>
-          <img
-            src={gifUrl(ex)}
-            alt={ex.name_kor}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', maxHeight: 480, display: 'block' }}
-          />
+          {videoOk ? (
+            <video
+              src={videoUrl(ex)}
+              loop
+              muted
+              autoPlay
+              playsInline
+              controls
+              onError={() => setVideoOk(false)}
+              style={{ width: '100%', height: '100%', objectFit: 'contain', maxHeight: 480, display: 'block', background: '#050505' }}
+            />
+          ) : (
+            <StaticExerciseThumb ex={ex} hovered={false} color={color} />
+          )}
           <div style={{
             position: 'absolute', top: 14, left: 14, background: color, color: '#000',
             fontSize: 11, fontWeight: 800, padding: '4px 12px', borderRadius: 2
@@ -247,7 +262,7 @@ function DetailModal({ ex, onClose }) {
   )
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 export default function ExerciseSection({ onNavigate }) {
   const [selected, setSelected] = useState(null)
@@ -333,23 +348,6 @@ export default function ExerciseSection({ onNavigate }) {
               <span className="gold-text">운동 목록</span>
             </h2>
           </div>
-          <button onClick={() => onNavigate('exercises')} style={{
-            background: 'transparent',
-            border: '1px solid rgba(255,215,0,0.28)',
-            color: '#FFD700', fontSize: 13, fontWeight: 700,
-            padding: '10px 26px', borderRadius: 3, cursor: 'pointer',
-            transition: 'all 0.25s ease', letterSpacing: 0.6,
-            display: 'flex', alignItems: 'center', gap: 6,
-          }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(255,215,0,0.09)'
-              e.currentTarget.style.borderColor = 'rgba(255,215,0,0.5)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.borderColor = 'rgba(255,215,0,0.28)'
-            }}
-          >전체 보기 →</button>
         </div>
 
         {/* Grid */}

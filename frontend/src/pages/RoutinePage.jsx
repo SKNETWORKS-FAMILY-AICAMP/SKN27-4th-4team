@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { ChevronRight, ChevronLeft, Check, AlertTriangle, RotateCcw, X } from 'lucide-react'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 import { useNavigate } from 'react-router-dom'
 import { getMe } from '../api/auth'
@@ -58,7 +58,7 @@ const TIME_OPTIONS = [
   { value: 30,  label: '30분', desc: '압축 세션 · 핵심 복합 운동 위주' },
   { value: 45,  label: '45분', desc: '표준 세션 · 주요 운동 + 보조 운동' },
   { value: 60,  label: '60분', desc: '완성형 세션 · 충분한 볼륨 확보', tag: '추천' },
-  { value: 90,  label: '90분', desc: '고볼륨 세션 · 풀 루틴 + 유산소' },
+  { value: 90,  label: '90분', desc: '고볼륨 세션 · 풀 루틴' },
 ]
 
 const SPLIT_OPTIONS = [
@@ -152,11 +152,11 @@ function StepProfile({ age, gender, level, onAgeChange, onGenderChange, onLevelC
       </p>
       <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: 8 }}>나이</label>
       <input
-        type="number"
-        min="14"
-        max="90"
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
         value={age}
-        onChange={e => onAgeChange(e.target.value)}
+        onChange={e => onAgeChange(e.target.value.replace(/\D/g, '').slice(0, 2))}
         placeholder="예: 28"
         style={{
           width: '100%',
@@ -2779,11 +2779,11 @@ function RoutineCheckView({
 
                   {/* 세트 / 횟수 표시 */}
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: isDone ? '#6EF0B5' : '#FFD700' }}>
-                      {sets} <span style={{ fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.3)' }}>Set</span>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#FFD700' }}>
+                      {sets} <span style={{ fontSize: 11, fontWeight: 400, color: '#FFD700' }}>Set</span>
                     </div>
-                    <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
-                      {reps} <span style={{ fontSize: 9.5 }}>Reps</span>
+                    <div style={{ fontSize: 11.5, color: '#FFFFFF', marginTop: 2 }}>
+                      {reps} <span style={{ fontSize: 9.5, color: '#FFFFFF' }}>Reps</span>
                     </div>
                   </div>
                 </div>
@@ -3003,7 +3003,7 @@ function RoutineCheckView({
                           display: 'flex',
                           alignItems: 'center',
                           gap: 12,
-                          padding: '10px 14px',
+                          padding: '11px 14px',
                           borderRadius: 10,
                           background: 'rgba(255,255,255,0.02)',
                           border: '1px solid rgba(255,255,255,0.06)',
@@ -3017,9 +3017,6 @@ function RoutineCheckView({
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 12.5, fontWeight: 700, color: '#FFD700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {alt.name}
-                          </div>
-                          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 2, whiteSpace: 'pre-line', wordBreak: 'keep-all', overflowWrap: 'anywhere' }}>
-                            {alt.detail}
                           </div>
                         </div>
                       </button>
