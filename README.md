@@ -56,7 +56,7 @@ HELBOTIN은 **헬스 보이 루틴**이라는 의미를 가진 AI 운동 루틴 
     <td align="center">Project Manager</td>
     <td align="center">AI 루틴 추천</td>
     <td align="center">RAG 기반 챗봇</td>
-    <td align="center">GraphDB / 데이터 구조 구축</td>
+    <td align="center">GraphDB / 데이터 구조</td>
     <td align="center">Auth 인증 / 사용자 관리</td>
   </tr>
   <tr>
