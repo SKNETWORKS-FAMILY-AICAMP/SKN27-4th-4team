@@ -93,7 +93,7 @@ HELBOTIN의 AI 시스템은 개인 맞춤 루틴 추천과 운동 상담 챗봇�
 
 | 구분 | 역할 | 문서 |
 | --- | --- | --- |
-| AI 루틴 추천 Agent | 사용자 조건을 기반으로 GraphDB 후보를 조회하고 루틴 초안을 생성/검증/수정 | [routine-service.md](./docs/ai/routine-service.md) |
+| AI 루틴 추천 | 사용자 조건을 기반으로 GraphDB 후보를 조회하고 루틴을 생성/검증/수정 | [routine-service.md](./docs/ai/routine-service.md) |
 | RAG 기반 챗봇 | 운동 질문을 분류하고 PostgreSQL + pgvector 검색 결과를 바탕으로 답변 | [RAG_품질평가.md](./docs/rag/RAG_품질평가.md) |
 
 ### 6. 데이터 모델
