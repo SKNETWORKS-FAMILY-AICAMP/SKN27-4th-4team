@@ -49,10 +49,10 @@ HELBOTIN은 **헬스 보이 루틴**이라는 의미를 담은 AI 운동 루틴 
 <table>
   <tr>
     <td align="center"><b>이재희 (팀장)</b></td>
-    <td align="center"><b>김필주</b></td>
-    <td align="center"><b>김경수</b></td>
     <td align="center"><b>주연중</b></td>
     <td align="center"><b>박창제</b></td>
+    <td align="center"><b>김필주</b></td>
+    <td align="center"><b>김경수</b></td>
   </tr>
   <tr>
     <td align="center"><img width="140" height="160" alt="이재희" src="docs/profiles/이재희.gif" /></td>
