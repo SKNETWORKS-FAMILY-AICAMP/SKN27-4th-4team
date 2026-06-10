@@ -109,7 +109,7 @@ HELBOTIN의 AI 시스템은 두 축으로 구성됩니다.
 > RAG 챗봇은 운동 질문 분류, 검색 결과 기반 답변, 범위 외 질문 제한 응답을 중심으로 평가했습니다.
 
 - 종합 테스트 결과 : [docs/test/테스트결과.md](./docs/test/테스트결과.md)
-- RAG 품질 평가 : [docs/rag/RAG\_품질평가.md](./docs/rag/RAG_품질평가.md)
+- RAG 품질 평가 : [docs/rag/RAG_품질평가.md](./docs/rag/RAG_품질평가.md)
 
 ---
 
