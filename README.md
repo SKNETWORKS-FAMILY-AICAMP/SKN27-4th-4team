@@ -76,7 +76,7 @@ HELBOTIN은 **헬스 보이 루틴**이라는 의미를 가진 AI 운동 루틴 
 
 ### 4. 시스템 아키텍처
 
-> React/Vite 프론트엔드, Django REST API, PostgreSQL + pgvector, Neo4j, LangGraph 기반 AI 워크플로우로 구성했습니다.
+React/Vite 프론트엔드, Django REST API, PostgreSQL + pgvector, Neo4j, LangGraph 기반 AI 워크플로우로 구성했습니다.
 
 - 상세 문서 : [docs/architecture/architecture.md](./docs/architecture/architecture.md)
 
@@ -84,8 +84,8 @@ HELBOTIN은 **헬스 보이 루틴**이라는 의미를 가진 AI 운동 루틴 
 
 HELBOTIN의 AI 시스템은 두 축으로 구성됩니다.
 
-**AI 루틴 추천 Agent**: 사용자 조건을 기반으로 GraphDB 후보를 조회하고 루틴 초안을 생성/검증/수정합니다.
-**RAG 기반 챗봇**: 운동 질문을 분류하고 PostgreSQL + pgvector 검색 결과를 바탕으로 답변합니다.
+- **AI 루틴 추천 Agent**: 사용자 조건을 기반으로 GraphDB 후보를 조회하고 루틴 초안을 생성/검증/수정합니다.
+- **RAG 기반 챗봇**: 운동 질문을 분류하고 PostgreSQL + pgvector 검색 결과를 바탕으로 답변합니다.
 
 - AI 루틴 추천 : [docs/ai/routine-service.md](./docs/ai/routine-service.md)
 - RAG 기반 챗봇 : [docs/rag/RAG\_품질평가.md](./docs/rag/RAG_품질평가.md)
