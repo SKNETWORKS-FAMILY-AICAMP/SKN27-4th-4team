@@ -3,7 +3,6 @@
 <p align="right">
   <strong>Link</strong> : <a href="https://sk-camp.cloud">https://sk-camp.cloud</a>
 </p>
-<br>
 
 ---
 
