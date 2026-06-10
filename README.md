@@ -1,6 +1,4 @@
-# HELBOTIN
-
-- Web: [https://sk-camp.cloud](https://sk-camp.cloud)
+# HELBOTIN [https://sk-camp.cloud](https://sk-camp.cloud)
 
 <p align="center">
   <strong>SKN27 4th PROJECT - AI Fitness Routine & Exercise Consultation Service</strong><br />
@@ -48,11 +46,11 @@ HELBOTIN은 **헬스 보이 루틴**이라는 의미를 가진 AI 운동 루틴 
     <td align="center"><b>박창제</b></td>
   </tr>
   <tr>
-    <td align="center"><img width="140" height="160" alt="이재희" src="docs/profiles/이재희.gif" /></td>
-    <td align="center"><img width="140" height="160" alt="김필주" src="docs/profiles/김필주.gif" /></td>
-    <td align="center"><img width="140" height="160" alt="김경수" src="docs/profiles/김경수.gif" /></td>
-    <td align="center"><img width="140" height="160" alt="주연중" src="docs/profiles/주연중.gif" /></td>
-    <td align="center"><img width="140" height="160" alt="박창제" src="docs/profiles/박창제.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="이재희" src="docs/Profiles/이재희.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="김필주" src="docs/Profiles/김필주.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="김경수" src="docs/Profiles/김경수.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="주연중" src="docs/Profiles/주연중.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="박창제" src="docs/Profiles/박창제.gif" /></td>
   </tr>
   <tr>
     <td align="center">Project Manager</td>
