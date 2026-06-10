@@ -4,10 +4,6 @@
   <strong>Link</strong> : <a href="https://sk-camp.cloud">https://sk-camp.cloud</a>
 </p>
 <br>
-<p align="center">
-  <strong>SKN27 4th PROJECT - AI Fitness Routine & Exercise Consultation Service</strong><br />
-  운동 라이브러리, 개인 맞춤 루틴 추천, AI 운동 챗봇을 연결한 운동 루틴 관리 서비스
-</p>
 
 ---
 
