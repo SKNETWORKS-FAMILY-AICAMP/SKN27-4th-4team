@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAG 설계 진화 기록</title>
+<style>
+  body{font-family:'Segoe UI','Malgun Gothic',sans-serif;max-width:760px;margin:0 auto;padding:32px 20px 64px;color:#2b2f36;background:#fff;}
+  h1{font-size:24px;font-weight:600;margin:0 0 6px;}
+  .lead{color:#667085;font-size:14px;margin:0 0 28px;}
+  section{margin:0 0 34px;}
+  h2{font-size:17px;font-weight:600;margin:0 0 4px;}
+  .cap{color:#667085;font-size:13px;margin:0 0 12px;line-height:1.6;}
+  .card{border:1px solid #e6e8ec;border-radius:10px;padding:14px;background:#fcfcfd;}
+  .card svg{display:block;width:100%;height:auto;}
+  .step{display:inline-block;font-size:12px;font-weight:600;color:#3B82C4;border:1px solid #cfe0f3;background:#eef5fd;border-radius:20px;padding:2px 10px;margin-bottom:8px;}
+</style>
+</head>
+<body>
+<h1>RAG 설계 진화 기록</h1>
+<p class="lead">피트니스 챗봇 RAG 파이프라인의 설계가 단계별로 어떻게 발전했는지 정리한 문서입니다. (1) 데이터 파이프라인 → (6) recall 노드와 쿼리 재작성까지.</p>
+<section>
+<span class="step">STEP 1</span>
+<h2>기획 단계 · 데이터 파이프라인</h2>
+<p class="cap">오프라인 인덱싱: 데이터 적재 → 분할 → 임베딩(OpenAI) → PostgreSQL(pgvector) 저장.</p>
+<div class="card">
+<svg width="100%" viewBox="0 0 460 560" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>1단계 — 피트니스 RAG 기획서 (오프라인 데이터 파이프라인)</title>
+<desc>이상치 처리 → 데이터 로더 → Splitter → Embedding → PostgreSQL → RAG 구현 순서의 인덱싱 파이프라인.</desc>
+<defs>
+<marker id="a1" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" fill="#9aa0a6"/></marker>
+<style>
+text{font-family:'Segoe UI','Malgun Gothic',sans-serif;}
+.t{font-size:16px;font-weight:600;fill:#2b2f36;}
+.n{font-size:13px;font-weight:600;fill:#1e466e;}
+.s{font-size:10.5px;font-weight:400;fill:#3d5066;}
+</style>
+</defs>
+
+<text x="230" y="30" text-anchor="middle" class="t">1. 기획 단계 · 데이터 파이프라인</text>
+
+<line x1="230" y1="104" x2="230" y2="128" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a1)"/>
+<line x1="230" y1="186" x2="230" y2="210" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a1)"/>
+<line x1="230" y1="284" x2="230" y2="308" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a1)"/>
+<line x1="230" y1="382" x2="230" y2="406" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a1)"/>
+<line x1="230" y1="464" x2="230" y2="488" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a1)"/>
+
+<g><rect x="90" y="54" width="280" height="50" rx="7" fill="#EAF2FB" stroke="#4B89C9" stroke-width="1.5"/><text x="230" y="76" text-anchor="middle" class="n">이상치 처리</text><text x="230" y="93" text-anchor="middle" class="s">동영상 데이터(이름) 정제</text></g>
+
+<g><rect x="90" y="136" width="280" height="50" rx="7" fill="#EAF2FB" stroke="#4B89C9" stroke-width="1.5"/><text x="230" y="166" text-anchor="middle" class="n">데이터 로더 (json)</text></g>
+
+<g><rect x="90" y="210" width="280" height="74" rx="7" fill="#EAF2FB" stroke="#4B89C9" stroke-width="1.5"/><text x="230" y="237" text-anchor="middle" class="n">Splitter</text><text x="230" y="254" text-anchor="middle" class="s">chunk 분할 · 데이터 클렌징</text><text x="230" y="271" text-anchor="middle" class="s">RecursiveCharacterTextSplitter</text></g>
+
+<g><rect x="90" y="308" width="280" height="74" rx="7" fill="#EAF2FB" stroke="#4B89C9" stroke-width="1.5"/><text x="230" y="335" text-anchor="middle" class="n">Embedding 처리</text><text x="230" y="352" text-anchor="middle" class="s">OpenAI</text><text x="230" y="369" text-anchor="middle" class="s">text-embedding-3-small</text></g>
+
+<g><rect x="90" y="406" width="280" height="50" rx="7" fill="#EAF2FB" stroke="#4B89C9" stroke-width="1.5"/><text x="230" y="436" text-anchor="middle" class="n">PostgreSQL (pgvector) 저장</text></g>
+
+<g><rect x="90" y="488" width="280" height="50" rx="7" fill="#E2F4F1" stroke="#1FA095" stroke-width="1.5"/><text x="230" y="518" text-anchor="middle" class="n" style="fill:#0c4a45">RAG 구현</text></g>
+</svg>
+</div>
+</section>
+<section>
+<span class="step">STEP 2</span>
+<h2>기본 LangGraph 구성</h2>
+<p class="cap">가장 단순한 형태 — 단일 retrieve 노드로 검색하고 generate로 답변을 생성.</p>
+<div class="card">
+<svg width="100%" viewBox="0 0 460 380" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>2단계 — 기본 LangGraph (start → retrieve → generate → end)</title>
+<desc>단일 retrieve 노드와 generate 노드로 이루어진 가장 기본적인 RAG 그래프.</desc>
+<defs>
+<marker id="a2" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" fill="#9aa0a6"/></marker>
+<style>
+text{font-family:'Segoe UI','Malgun Gothic',sans-serif;}
+.t{font-size:16px;font-weight:600;fill:#2b2f36;}
+.n{font-size:14px;font-weight:600;}
+.s{font-size:10.5px;font-weight:400;}
+</style>
+</defs>
+
+<text x="230" y="30" text-anchor="middle" class="t">2. 기본 LangGraph 구성</text>
+
+<line x1="230" y1="86" x2="230" y2="116" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a2)"/>
+<line x1="230" y1="172" x2="230" y2="202" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a2)"/>
+<line x1="230" y1="258" x2="230" y2="288" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a2)"/>
+
+<g><rect x="180" y="54" width="100" height="32" rx="16" fill="#3B82C4" stroke="#2c6aa3" stroke-width="1.2"/><text x="230" y="75" text-anchor="middle" class="n" fill="#fff">START</text></g>
+
+<g><rect x="140" y="116" width="180" height="56" rx="7" fill="#E9F6EC" stroke="#3AA15B" stroke-width="1.5"/><text x="230" y="142" text-anchor="middle" class="n" fill="#1b5e2a">retrieve node</text><text x="230" y="160" text-anchor="middle" class="s" fill="#1b5e2a">관련 운동 검색</text></g>
+
+<g><rect x="140" y="202" width="180" height="56" rx="7" fill="#EDEAF8" stroke="#7C5CCB" stroke-width="1.5"/><text x="230" y="228" text-anchor="middle" class="n" fill="#34256e">generate node</text><text x="230" y="246" text-anchor="middle" class="s" fill="#34256e">LLM 답변 생성</text></g>
+
+<g><rect x="190" y="288" width="80" height="32" rx="16" fill="#EEF0F3" stroke="#475467" stroke-width="1.2"/><text x="230" y="309" text-anchor="middle" class="n" fill="#2b2f36" style="font-weight:600">END</text></g>
+</svg>
+</div>
+</section>
+<section>
+<span class="step">STEP 3</span>
+<h2>조건 분기(conditional edge) 도입</h2>
+<p class="cap">classify를 추가해 질문 유형(general/specific/injury)별로 retrieve를 분기.</p>
+<div class="card">
+<svg width="100%" viewBox="0 0 620 440" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>3단계 — 조건 분기(conditional edge) 도입</title>
+<desc>classify가 질문 유형에 따라 retrieve_general/specific/injury로 분기한 뒤 generate를 거쳐 end로 간다.</desc>
+<defs>
+<marker id="a3" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" fill="#9aa0a6"/></marker>
+<style>
+text{font-family:'Segoe UI','Malgun Gothic',sans-serif;}
+.t{font-size:16px;font-weight:600;fill:#2b2f36;}
+.n{font-size:13px;font-weight:600;}
+.s{font-size:10px;font-weight:400;}
+</style>
+</defs>
+
+<text x="310" y="30" text-anchor="middle" class="t">3. 조건 분기(conditional edge) 도입</text>
+
+<line x1="310" y1="82" x2="310" y2="100" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a3)"/>
+<line x1="310" y1="144" x2="125" y2="188" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a3)"/>
+<line x1="310" y1="144" x2="310" y2="188" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a3)"/>
+<line x1="310" y1="144" x2="495" y2="188" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a3)"/>
+<line x1="120" y1="246" x2="285" y2="290" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a3)"/>
+<line x1="310" y1="246" x2="310" y2="290" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a3)"/>
+<line x1="500" y1="246" x2="335" y2="290" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a3)"/>
+<line x1="310" y1="340" x2="310" y2="362" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a3)"/>
+
+<g><rect x="260" y="50" width="100" height="32" rx="16" fill="#3B82C4" stroke="#2c6aa3" stroke-width="1.2"/><text x="310" y="71" text-anchor="middle" class="n" fill="#fff">START</text></g>
+
+<g><rect x="235" y="100" width="150" height="44" rx="7" fill="#E8F1FC" stroke="#3B82C4" stroke-width="1.5"/><text x="310" y="127" text-anchor="middle" class="n" fill="#1e466e">classify</text></g>
+
+<g><rect x="40" y="188" width="160" height="58" rx="7" fill="#E9F6EC" stroke="#3AA15B" stroke-width="1.5"/><text x="120" y="214" text-anchor="middle" class="n" fill="#1b5e2a">retrieve general</text><text x="120" y="231" text-anchor="middle" class="s" fill="#1b5e2a">일반 추천</text></g>
+
+<g><rect x="230" y="188" width="160" height="58" rx="7" fill="#FBF0DA" stroke="#C9942B" stroke-width="1.5"/><text x="310" y="214" text-anchor="middle" class="n" fill="#6e4e12">retrieve specific</text><text x="310" y="231" text-anchor="middle" class="s" fill="#6e4e12">특정 운동</text></g>
+
+<g><rect x="420" y="188" width="160" height="58" rx="7" fill="#FBE9E9" stroke="#C94A4A" stroke-width="1.5"/><text x="500" y="214" text-anchor="middle" class="n" fill="#6e1f1f">retrieve injury</text><text x="500" y="231" text-anchor="middle" class="s" fill="#6e1f1f">부상·통증</text></g>
+
+<g><rect x="230" y="290" width="160" height="50" rx="7" fill="#EDEAF8" stroke="#7C5CCB" stroke-width="1.5"/><text x="310" y="320" text-anchor="middle" class="n" fill="#34256e">generate node</text></g>
+
+<g><rect x="270" y="362" width="80" height="32" rx="16" fill="#EEF0F3" stroke="#475467" stroke-width="1.2"/><text x="310" y="383" text-anchor="middle" class="n" fill="#2b2f36" style="font-weight:600">END</text></g>
+</svg>
+</div>
+</section>
+<section>
+<span class="step">STEP 4</span>
+<h2>Adaptive RAG</h2>
+<p class="cap">운동 무관 질문용 out_of_scope, 복잡한 질문용 Multi-Query 확장 검색, 상태 관리용 RAGState를 도입.</p>
+<div class="card">
+<svg width="100%" viewBox="0 0 680 500" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>4단계 — Adaptive RAG (out_of_scope + Multi-Query + RAGState)</title>
+<desc>classify가 general/specific/injury/out_of_scope로 분기하고, complex 질문은 Multi-Query로 확장 검색한 뒤 generate로 답을 생성한다. 상태는 RAGState로 관리한다.</desc>
+<defs>
+<marker id="a4" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" fill="#9aa0a6"/></marker>
+<style>
+text{font-family:'Segoe UI','Malgun Gothic',sans-serif;}
+.t{font-size:16px;font-weight:600;fill:#2b2f36;}
+.n{font-size:13px;font-weight:600;}
+.s{font-size:10px;font-weight:400;}
+.lg{font-size:11px;fill:#555;}
+</style>
+</defs>
+
+<text x="340" y="20" text-anchor="middle" class="t">4. Adaptive RAG — out_of_scope · Multi-Query · RAGState</text>
+
+<line x1="300" y1="62" x2="300" y2="90" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a4)"/>
+<line x1="300" y1="134" x2="111" y2="170" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a4)"/>
+<line x1="300" y1="134" x2="275" y2="170" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a4)"/>
+<line x1="300" y1="134" x2="439" y2="170" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a4)"/>
+<line x1="300" y1="134" x2="593" y2="170" stroke="#C94A8B" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a4)"/>
+
+<line x1="111" y1="228" x2="150" y2="250" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a4)"/>
+<line x1="275" y1="228" x2="275" y2="250" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a4)"/>
+<line x1="439" y1="228" x2="420" y2="250" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a4)"/>
+<line x1="300" y1="284" x2="300" y2="304" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a4)"/>
+<line x1="300" y1="348" x2="300" y2="366" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a4)"/>
+<line x1="300" y1="404" x2="300" y2="422" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a4)"/>
+<polyline points="593,228 593,437 347,437" fill="none" stroke="#C94A8B" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a4)"/>
+
+<g><rect x="250" y="32" width="100" height="30" rx="15" fill="#3B82C4" stroke="#2c6aa3" stroke-width="1.2"/><text x="300" y="52" text-anchor="middle" class="n" fill="#fff">START</text></g>
+
+<g><rect x="220" y="90" width="160" height="44" rx="7" fill="#E8F1FC" stroke="#3B82C4" stroke-width="1.5"/><text x="300" y="110" text-anchor="middle" class="n" fill="#1e466e">classify</text><text x="300" y="126" text-anchor="middle" class="s" fill="#1e466e">도메인 + 적정도 분류</text></g>
+
+<g><rect x="36" y="170" width="150" height="58" rx="7" fill="#E9F6EC" stroke="#3AA15B" stroke-width="1.5"/><text x="111" y="194" text-anchor="middle" class="n" fill="#1b5e2a">retrieve_general</text><text x="111" y="210" text-anchor="middle" class="s" fill="#1b5e2a">simple: 벡터 검색</text><text x="111" y="222" text-anchor="middle" class="s" fill="#1b5e2a">complex: Multi-Query</text></g>
+
+<g><rect x="200" y="170" width="150" height="58" rx="7" fill="#FBF0DA" stroke="#C9942B" stroke-width="1.5"/><text x="275" y="194" text-anchor="middle" class="n" fill="#6e4e12">retrieve_specific</text><text x="275" y="210" text-anchor="middle" class="s" fill="#6e4e12">운동명 추출 → ILIKE</text><text x="275" y="222" text-anchor="middle" class="s" fill="#6e4e12">실패 시 벡터 폴백</text></g>
+
+<g><rect x="364" y="170" width="150" height="58" rx="7" fill="#FBE9E9" stroke="#C94A4A" stroke-width="1.5"/><text x="439" y="194" text-anchor="middle" class="n" fill="#6e1f1f">retrieve_injury</text><text x="439" y="210" text-anchor="middle" class="s" fill="#6e1f1f">부상 부위 제외</text><text x="439" y="222" text-anchor="middle" class="s" fill="#6e1f1f">simple/complex 분기</text></g>
+
+<g><rect x="528" y="170" width="130" height="58" rx="7" fill="#FBE7F0" stroke="#C94A8B" stroke-width="1.5" stroke-dasharray="5 4"/><text x="593" y="197" text-anchor="middle" class="n" fill="#6e1f4b">out_of_scope</text><text x="593" y="214" text-anchor="middle" class="s" fill="#6e1f4b">범위 밖 질문 처리</text></g>
+
+<rect x="30" y="250" width="556" height="34" rx="6" fill="#EAF2FB" stroke="#3B82C4" stroke-width="1.3" stroke-dasharray="5 4"/>
+<text x="308" y="271" text-anchor="middle" class="s" fill="#1e466e" style="font-weight:600">Multi-Query (complex일 때): 원본 질문 + 3가지 변형 질문 생성 → 각각 검색 → 중복 제거</text>
+
+<g><rect x="220" y="304" width="160" height="44" rx="7" fill="#EDEAF8" stroke="#7C5CCB" stroke-width="1.5"/><text x="300" y="324" text-anchor="middle" class="n" fill="#34256e">generate</text><text x="300" y="340" text-anchor="middle" class="s" fill="#34256e">context + LLM → 답변 생성</text></g>
+
+<rect x="30" y="366" width="556" height="38" rx="6" fill="#F1EFFA" stroke="#9b86d6" stroke-width="1.2"/>
+<text x="308" y="382" text-anchor="middle" class="s" fill="#34256e" style="font-weight:600">RAGState</text>
+<text x="308" y="396" text-anchor="middle" class="s" fill="#555">question · query_type · complexity · retrieved_docs · context · answer · sources · messages</text>
+
+<g><rect x="255" y="422" width="90" height="30" rx="15" fill="#EEF0F3" stroke="#475467" stroke-width="1.2"/><text x="300" y="442" text-anchor="middle" class="n" fill="#2b2f36" style="font-weight:600">END</text></g>
+
+<line x1="30" y1="472" x2="650" y2="472" stroke="#ddd" stroke-width="1"/>
+<circle cx="120" cy="490" r="5" fill="#E9F6EC" stroke="#3AA15B"/><text x="130" y="494" class="lg">general</text>
+<circle cx="200" cy="490" r="5" fill="#FBF0DA" stroke="#C9942B"/><text x="210" y="494" class="lg">specific</text>
+<circle cx="278" cy="490" r="5" fill="#FBE9E9" stroke="#C94A4A"/><text x="288" y="494" class="lg">injury</text>
+<circle cx="348" cy="490" r="5" fill="#FBE7F0" stroke="#C94A8B"/><text x="358" y="494" class="lg">out_of_scope</text>
+<line x1="452" y1="490" x2="476" y2="490" stroke="#3B82C4" stroke-width="2" stroke-dasharray="5 4"/><text x="482" y="494" class="lg">Multi-Query (complex)</text>
+</svg>
+</div>
+</section>
+<section>
+<span class="step">STEP 5</span>
+<h2>recall 노드 추가</h2>
+<p class="cap">&quot;처음 물어본 운동이 뭐야?&quot; 같은 회상·메타 질문을 검색 없이 대화 기록만으로 답하도록 분리 — 검색 결과 오염 차단.</p>
+<div class="card">
+<svg width="100%" viewBox="0 0 680 480" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>5단계 — recall 노드 추가안</title>
+<desc>classify가 recall/general/specific/injury/out_of_scope로 분기한다. recall과 out_of_scope는 검색 없이 바로 END로, 나머지는 generate를 거쳐 END로 간다.</desc>
+<defs>
+<marker id="a5" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" fill="#9aa0a6"/></marker>
+<style>
+text{font-family:'Segoe UI','Malgun Gothic',sans-serif;}
+.t{font-size:16px;font-weight:600;fill:#2b2f36;}
+.n{font-size:13px;font-weight:600;}
+.s{font-size:10px;font-weight:400;}
+.lg{font-size:11px;fill:#555;}
+</style>
+</defs>
+
+<text x="340" y="20" text-anchor="middle" class="t">5. recall 노드 추가안</text>
+
+<line x1="340" y1="62" x2="340" y2="90" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a5)"/>
+<line x1="340" y1="134" x2="98" y2="170" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a5)"/>
+<line x1="340" y1="134" x2="219" y2="170" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a5)"/>
+<line x1="340" y1="134" x2="339" y2="170" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a5)"/>
+<line x1="340" y1="134" x2="459" y2="170" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a5)"/>
+<line x1="340" y1="134" x2="581" y2="170" stroke="#C94A8B" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a5)"/>
+
+<line x1="217" y1="228" x2="300" y2="300" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a5)"/>
+<line x1="339" y1="228" x2="339" y2="300" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a5)"/>
+<line x1="461" y1="228" x2="378" y2="300" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a5)"/>
+<line x1="339" y1="346" x2="340" y2="390" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a5)"/>
+<polyline points="95,228 95,405 303,405" fill="none" stroke="#1FA095" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a5)"/>
+<polyline points="583,228 583,405 377,405" fill="none" stroke="#C94A8B" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a5)"/>
+
+<g><rect x="305" y="32" width="70" height="30" rx="15" fill="#3B82C4" stroke="#2c6aa3" stroke-width="1.2"/><text x="340" y="52" text-anchor="middle" class="n" fill="#fff">START</text></g>
+
+<g><rect x="260" y="90" width="160" height="44" rx="7" fill="#E8F1FC" stroke="#3B82C4" stroke-width="1.5"/><text x="340" y="110" text-anchor="middle" class="n" fill="#1e466e">classify</text><text x="340" y="126" text-anchor="middle" class="s" fill="#1e466e">감별: 대화 vs 정보</text></g>
+
+<g><rect x="40" y="170" width="110" height="58" rx="7" fill="#E2F4F1" stroke="#1FA095" stroke-width="1.5"/><text x="95" y="194" text-anchor="middle" class="n" fill="#0c4a45">recall</text><text x="95" y="210" text-anchor="middle" class="s" fill="#0c4a45">히스토리로 답</text><text x="95" y="222" text-anchor="middle" class="s" fill="#0c4a45" style="font-weight:600">· NEW</text></g>
+
+<g><rect x="162" y="170" width="110" height="58" rx="7" fill="#E9F6EC" stroke="#3AA15B" stroke-width="1.5"/><text x="217" y="197" text-anchor="middle" class="n" fill="#1b5e2a">general</text><text x="217" y="214" text-anchor="middle" class="s" fill="#1b5e2a">벡터 검색</text></g>
+
+<g><rect x="284" y="170" width="110" height="58" rx="7" fill="#FBF0DA" stroke="#C9942B" stroke-width="1.5"/><text x="339" y="197" text-anchor="middle" class="n" fill="#6e4e12">specific</text><text x="339" y="214" text-anchor="middle" class="s" fill="#6e4e12">키워드 검색</text></g>
+
+<g><rect x="406" y="170" width="110" height="58" rx="7" fill="#FBE9E9" stroke="#C94A4A" stroke-width="1.5"/><text x="461" y="197" text-anchor="middle" class="n" fill="#6e1f1f">injury</text><text x="461" y="214" text-anchor="middle" class="s" fill="#6e1f1f">부위 제외·rerank</text></g>
+
+<g><rect x="528" y="170" width="110" height="58" rx="7" fill="#FBE7F0" stroke="#C94A8B" stroke-width="1.5" stroke-dasharray="5 4"/><text x="583" y="197" text-anchor="middle" class="n" fill="#6e1f4b">out_of_scope</text><text x="583" y="214" text-anchor="middle" class="s" fill="#6e1f4b">범위 밖 질문</text></g>
+
+<g><rect x="264" y="300" width="150" height="46" rx="7" fill="#EDEAF8" stroke="#7C5CCB" stroke-width="1.5"/><text x="339" y="320" text-anchor="middle" class="n" fill="#34256e">generate</text><text x="339" y="337" text-anchor="middle" class="s" fill="#34256e">context + LLM 답변</text></g>
+
+<g><rect x="305" y="390" width="70" height="30" rx="15" fill="#EEF0F3" stroke="#475467" stroke-width="1.2"/><text x="340" y="410" text-anchor="middle" class="n" fill="#2b2f36" style="font-weight:600">END</text></g>
+
+<line x1="40" y1="448" x2="640" y2="448" stroke="#ddd" stroke-width="1"/>
+<text x="40" y="466" class="lg" style="font-weight:600">검색→generate :</text>
+<circle cx="148" cy="462" r="5" fill="#E9F6EC" stroke="#3AA15B"/><text x="158" y="466" class="lg">general</text>
+<circle cx="228" cy="462" r="5" fill="#FBF0DA" stroke="#C9942B"/><text x="238" y="466" class="lg">specific</text>
+<circle cx="312" cy="462" r="5" fill="#FBE9E9" stroke="#C94A4A"/><text x="322" y="466" class="lg">injury</text>
+<text x="386" y="466" class="lg" style="font-weight:600">바로 END :</text>
+<circle cx="466" cy="462" r="5" fill="#E2F4F1" stroke="#1FA095"/><text x="476" y="466" class="lg">recall (NEW)</text>
+<circle cx="566" cy="462" r="5" fill="#FBE7F0" stroke="#C94A8B"/><text x="576" y="466" class="lg">out_of_scope</text>
+</svg>
+</div>
+</section>
+<section>
+<span class="step">STEP 6</span>
+<h2>최종 · recall + query rewriting 강화</h2>
+<p class="cap">검색 경로는 검색 전 _rewrite_query로 &quot;처음 물어본 운동&quot;을 실제 운동명으로 치환 — &quot;처음 물어본 운동의 호흡법&quot;까지 정확히 처리.</p>
+<div class="card">
+<svg width="100%" viewBox="0 0 680 480" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>6단계(최종) — recall 노드 + query rewriting 강화</title>
+<desc>classify가 recall/general/specific/injury/out_of_scope로 분기한다. recall과 out_of_scope는 검색 없이 바로 END로, general/specific/injury는 검색 전 _rewrite_query로 참조를 운동명으로 치환한 뒤 generate를 거쳐 END로 간다.</desc>
+<defs>
+<marker id="a6" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" fill="#9aa0a6"/></marker>
+<style>
+text{font-family:'Segoe UI','Malgun Gothic',sans-serif;}
+.t{font-size:16px;font-weight:600;fill:#2b2f36;}
+.n{font-size:13px;font-weight:600;}
+.s{font-size:10px;font-weight:400;}
+.lg{font-size:11px;fill:#555;}
+</style>
+</defs>
+
+<text x="340" y="20" text-anchor="middle" class="t">6. 최종 — recall 노드 + query rewriting 강화</text>
+
+<line x1="340" y1="62" x2="340" y2="90" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a6)"/>
+<line x1="340" y1="134" x2="98" y2="168" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a6)"/>
+<line x1="340" y1="134" x2="219" y2="168" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a6)"/>
+<line x1="340" y1="134" x2="339" y2="168" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a6)"/>
+<line x1="340" y1="134" x2="459" y2="168" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a6)"/>
+<line x1="340" y1="134" x2="581" y2="168" stroke="#C94A8B" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a6)"/>
+
+<line x1="217" y1="226" x2="217" y2="248" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a6)"/>
+<line x1="339" y1="226" x2="339" y2="248" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a6)"/>
+<line x1="461" y1="226" x2="461" y2="248" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a6)"/>
+<line x1="300" y1="280" x2="314" y2="300" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a6)"/>
+<line x1="339" y1="280" x2="339" y2="300" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a6)"/>
+<line x1="398" y1="280" x2="366" y2="300" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a6)"/>
+<line x1="339" y1="346" x2="340" y2="388" stroke="#9aa0a6" stroke-width="1.6" marker-end="url(#a6)"/>
+<polyline points="95,226 95,403 303,403" fill="none" stroke="#1FA095" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a6)"/>
+<polyline points="583,226 583,403 377,403" fill="none" stroke="#C94A8B" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a6)"/>
+
+<g><rect x="305" y="32" width="70" height="30" rx="15" fill="#3B82C4" stroke="#2c6aa3" stroke-width="1.2"/><text x="340" y="52" text-anchor="middle" class="n" fill="#fff">START</text></g>
+
+<g><rect x="255" y="90" width="170" height="44" rx="7" fill="#E8F1FC" stroke="#3B82C4" stroke-width="1.5"/><text x="340" y="110" text-anchor="middle" class="n" fill="#1e466e">classify</text><text x="340" y="126" text-anchor="middle" class="s" fill="#1e466e">분류: 이름·순서 vs 속성</text></g>
+
+<g><rect x="40" y="168" width="110" height="58" rx="7" fill="#E2F4F1" stroke="#1FA095" stroke-width="1.5"/><text x="95" y="192" text-anchor="middle" class="n" fill="#0c4a45">recall</text><text x="95" y="208" text-anchor="middle" class="s" fill="#0c4a45">히스토리로 답</text><text x="95" y="220" text-anchor="middle" class="s" fill="#0c4a45" style="font-weight:600">· NEW</text></g>
+
+<g><rect x="162" y="168" width="110" height="58" rx="7" fill="#E9F6EC" stroke="#3AA15B" stroke-width="1.5"/><text x="217" y="195" text-anchor="middle" class="n" fill="#1b5e2a">general</text><text x="217" y="212" text-anchor="middle" class="s" fill="#1b5e2a">벡터 검색</text></g>
+
+<g><rect x="284" y="168" width="110" height="58" rx="7" fill="#FBF0DA" stroke="#C9942B" stroke-width="1.5"/><text x="339" y="195" text-anchor="middle" class="n" fill="#6e4e12">specific</text><text x="339" y="212" text-anchor="middle" class="s" fill="#6e4e12">키워드 검색</text></g>
+
+<g><rect x="406" y="168" width="110" height="58" rx="7" fill="#FBE9E9" stroke="#C94A4A" stroke-width="1.5"/><text x="461" y="195" text-anchor="middle" class="n" fill="#6e1f1f">injury</text><text x="461" y="212" text-anchor="middle" class="s" fill="#6e1f1f">부위 제외·rerank</text></g>
+
+<g><rect x="528" y="168" width="110" height="58" rx="7" fill="#FBE7F0" stroke="#C94A8B" stroke-width="1.5" stroke-dasharray="5 4"/><text x="583" y="195" text-anchor="middle" class="n" fill="#6e1f4b">out_of_scope</text><text x="583" y="212" text-anchor="middle" class="s" fill="#6e1f4b">범위 밖 질문</text></g>
+
+<rect x="168" y="248" width="342" height="30" rx="6" fill="#EAF2FB" stroke="#3B82C4" stroke-width="1.3" stroke-dasharray="5 4"/>
+<text x="339" y="267" text-anchor="middle" class="s" fill="#1e466e" style="font-weight:600">_rewrite_query · 참조 → 실제 운동명 (검색 전, 강화)</text>
+
+<g><rect x="264" y="300" width="150" height="46" rx="7" fill="#EDEAF8" stroke="#7C5CCB" stroke-width="1.5"/><text x="339" y="320" text-anchor="middle" class="n" fill="#34256e">generate</text><text x="339" y="337" text-anchor="middle" class="s" fill="#34256e">context + LLM 답변</text></g>
+
+<g><rect x="305" y="388" width="70" height="30" rx="15" fill="#EEF0F3" stroke="#475467" stroke-width="1.2"/><text x="340" y="408" text-anchor="middle" class="n" fill="#2b2f36" style="font-weight:600">END</text></g>
+
+<line x1="40" y1="446" x2="640" y2="446" stroke="#ddd" stroke-width="1"/>
+<text x="40" y="464" class="lg" style="font-weight:600">검색→generate :</text>
+<circle cx="148" cy="460" r="5" fill="#E9F6EC" stroke="#3AA15B"/><text x="158" y="464" class="lg">general</text>
+<circle cx="228" cy="460" r="5" fill="#FBF0DA" stroke="#C9942B"/><text x="238" y="464" class="lg">specific</text>
+<circle cx="312" cy="460" r="5" fill="#FBE9E9" stroke="#C94A4A"/><text x="322" y="464" class="lg">injury</text>
+<text x="386" y="464" class="lg" style="font-weight:600">바로 END :</text>
+<circle cx="466" cy="460" r="5" fill="#E2F4F1" stroke="#1FA095"/><text x="476" y="464" class="lg">recall (NEW)</text>
+<circle cx="566" cy="460" r="5" fill="#FBE7F0" stroke="#C94A8B"/><text x="576" y="464" class="lg">out_of_scope</text>
+</svg>
+</div>
+</section>
+</body></html>

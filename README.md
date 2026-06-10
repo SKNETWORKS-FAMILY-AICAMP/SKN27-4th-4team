@@ -26,21 +26,21 @@ HELBOTIN은 **헬스 보이 루틴**이라는 의미를 담은 AI 운동 루틴 
 
 ### 2. 문제 정의
 
-| 대상 | 문제 |
-| --- | --- |
-| 운동 경험자 | 반복되는 루틴으로 인한 정체기 및 흥미 저하 |
-| 운동 초보자 | 어떤 운동을 어떻게 시작해야 할지 판단하기 어려움 |
-| 통증·부상 이력 사용자 | 피해야 할 운동과 대체 운동을 구분하기 어려움 |
-| 공통 사용자 | 운동 자세, 호흡, 주의사항 정보가 여러 곳에 흩어져 있음 |
+| 대상                  | 문제                                                   |
+| --------------------- | ------------------------------------------------------ |
+| 운동 경험자           | 반복되는 루틴으로 인한 정체기 및 흥미 저하             |
+| 운동 초보자           | 어떤 운동을 어떻게 시작해야 할지 판단하기 어려움       |
+| 통증·부상 이력 사용자 | 피해야 할 운동과 대체 운동을 구분하기 어려움           |
+| 공통 사용자           | 운동 자세, 호흡, 주의사항 정보가 여러 곳에 흩어져 있음 |
 
 ### 3. 서비스 소개
 
-| 핵심 기능 | 설명 |
-| --- | --- |
-| 운동 라이브러리 | 900개 이상의 운동 정보, 영상, 자세 가이드 제공 |
+| 핵심 기능           | 설명                                                  |
+| ------------------- | ----------------------------------------------------- |
+| 운동 라이브러리     | 900개 이상의 운동 정보, 영상, 자세 가이드 제공        |
 | 개인 맞춤 루틴 추천 | 목표, 수준, 통증, 요일, 시간 기반 주간 루틴 자동 구성 |
-| AI 운동 챗봇 | 운동 질문을 분류하고 RAG 검색 결과 기반 답변 제공 |
-| 루틴 관리 | 수행 체크, 대체 운동 선택, 데일리 메모 저장 |
+| AI 운동 챗봇        | 운동 질문을 분류하고 RAG 검색 결과 기반 답변 제공     |
+| 루틴 관리           | 수행 체크, 대체 운동 선택, 데일리 메모 저장           |
 
 ---
 
@@ -55,11 +55,11 @@ HELBOTIN은 **헬스 보이 루틴**이라는 의미를 담은 AI 운동 루틴 
     <td align="center"><b>박창제</b></td>
   </tr>
   <tr>
-    <td align="center"><img width="140" height="160" alt="이재희" src="frontend/public/이재희.gif" /></td>
-    <td align="center"><img width="140" height="160" alt="주연중" src="frontend/public/주연중.gif" /></td>
-    <td align="center"><img width="140" height="160" alt="박창제" src="frontend/public/박창제.gif" /></td>
-    <td align="center"><img width="140" height="160" alt="김필주" src="frontend/public/김필주.gif" /></td>
-    <td align="center"><img width="140" height="160" alt="김경수" src="frontend/public/김경수.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="이재희" src="docs/profiles/이재희.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="주연중" src="docs/profiles/주연중.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="박창제" src="docs/profiles/박창제.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="김필주" src="docs/profiles/김필주.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="김경수" src="docs/profiles/김경수.gif" /></td>
   </tr>
   <tr>
     <td align="center">Project Manager</td>
@@ -109,13 +109,13 @@ HELBOTIN의 AI 시스템은 두 축으로 구성됩니다.
 
 ### 7. 기술 스택
 
-| 영역 | 기술 |
-| --- | --- |
-| Frontend | React 18, Vite, React Router, Lucide React, React Markdown |
-| Backend | Django 4.2, Django REST Framework, Simple JWT, Gunicorn, WhiteNoise |
-| Database | PostgreSQL 16, pgvector, Neo4j, APOC |
-| AI | OpenAI, LangChain, LangGraph, Groq, Ollama |
-| DevOps | Docker Compose, AWS EC2, Nginx, Certbot HTTPS |
+| 영역     | 기술                                                                |
+| -------- | ------------------------------------------------------------------- |
+| Frontend | React 18, Vite, React Router, Lucide React, React Markdown          |
+| Backend  | Django 4.2, Django REST Framework, Simple JWT, Gunicorn, WhiteNoise |
+| Database | PostgreSQL 16, pgvector, Neo4j, APOC                                |
+| AI       | OpenAI, LangChain, LangGraph, Groq, Ollama                          |
+| DevOps   | Docker Compose, AWS EC2, Nginx, Certbot HTTPS                       |
 
 ### 8. 프로젝트 구조
 
