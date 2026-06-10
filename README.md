@@ -1,4 +1,4 @@
-# HELBOTIN 
+<img src="docs/Profiles/helbotin.png" width="100%" alt="HELBOTIN" />
 
 <p align="right">
   <strong>Link</strong> : <a href="https://sk-camp.cloud">https://sk-camp.cloud</a>
@@ -78,11 +78,11 @@ HELBOTIN은 **헬스 보이 루틴**이라는 의미를 가진 AI 운동 루틴 
 
 React/Vite 프론트엔드와 Django REST API를 중심으로 PostgreSQL + pgvector, Neo4j, LangGraph 기반 AI 워크플로우를 연결했습니다.
 
-| 구분 | 내용 |
-| --- | --- |
-| Frontend | React/Vite 기반 사용자 화면 |
-| Backend | Django REST API 기반 서비스 로직 |
-| Database | PostgreSQL + pgvector, Neo4j GraphDB |
+| 구분        | 내용                                 |
+| ----------- | ------------------------------------ |
+| Frontend    | React/Vite 기반 사용자 화면          |
+| Backend     | Django REST API 기반 서비스 로직     |
+| Database    | PostgreSQL + pgvector, Neo4j GraphDB |
 | AI Workflow | LangGraph 기반 루틴 추천 및 RAG 챗봇 |
 
 상세 문서 : [docs/architecture/architecture.md](./docs/architecture/architecture.md)
@@ -91,29 +91,29 @@ React/Vite 프론트엔드와 Django REST API를 중심으로 PostgreSQL + pgvec
 
 HELBOTIN의 AI 시스템은 개인 맞춤 루틴 추천과 운동 상담 챗봇으로 구성됩니다.
 
-| 구분 | 역할 | 문서 |
-| --- | --- | --- |
-| AI 루틴 추천 | 사용자 조건을 기반으로 GraphDB 후보를 조회하고 루틴을 생성/검증/수정 | [routine-service.md](./docs/ai/routine-service.md) |
-| RAG 기반 챗봇 | 운동 질문을 분류하고 PostgreSQL + pgvector 검색 결과를 바탕으로 답변 | [RAG_품질평가.md](./docs/rag/RAG_품질평가.md) |
+| 구분          | 역할                                                                 | 문서                                               |
+| ------------- | -------------------------------------------------------------------- | -------------------------------------------------- |
+| AI 루틴 추천  | 사용자 조건을 기반으로 GraphDB 후보를 조회하고 루틴을 생성/검증/수정 | [routine-service.md](./docs/ai/routine-service.md) |
+| RAG 기반 챗봇 | 운동 질문을 분류하고 PostgreSQL + pgvector 검색 결과를 바탕으로 답변 | [RAG\_품질평가.md](./docs/rag/RAG_품질평가.md)     |
 
 ### 6. 데이터 모델
 
 사용자, 운동, 상담 세션, 주간 루틴은 PostgreSQL에 저장하고, 운동 간 유사/대체/progression 관계는 Neo4j GraphDB로 탐색합니다.
 
-| 문서 | 내용 |
-| --- | --- |
-| [ERD 및 GraphDB](./docs/architecture/erd_graphdb.md) | PostgreSQL 테이블 구조와 Neo4j 노드/관계 요약 |
-| [시퀀스 다이어그램](./docs/architecture/sequence-diagram.md) | 챗봇 RAG, 루틴 추천, 피드백 흐름 |
+| 문서                                                         | 내용                                          |
+| ------------------------------------------------------------ | --------------------------------------------- |
+| [ERD 및 GraphDB](./docs/architecture/erd_graphdb.md)         | PostgreSQL 테이블 구조와 Neo4j 노드/관계 요약 |
+| [시퀀스 다이어그램](./docs/architecture/sequence-diagram.md) | 챗봇 RAG, 루틴 추천, 피드백 흐름              |
 
 ### 7. 성능 평가
 
 서비스 동작은 API 테스트와 배포 화면 기준 UI 테스트로 검증했고, RAG 챗봇은 검색 정확도와 답변 품질을 별도로 평가했습니다.
 
-| 평가 항목 | 결과 | 문서 |
-| --- | --- | --- |
-| API/UI 테스트 | 157건 중 155건 정상 통과. 2건은 회원가입 비밀번호 정책 미적용 이슈로 확인 | [테스트결과.md](./docs/test/테스트결과.md) |
-| 배포 화면 UI 테스트 | 버튼, 라우팅, 모달, SSE 응답, 영상 로딩 등 126건 모두 정상 통과 | [테스트결과.md](./docs/test/테스트결과.md) |
-| RAG 품질 평가 | 질문 분류, 검색 결과 기반 답변, 범위 외 질문 제한 응답 중심으로 평가 | [RAG_품질평가.md](./docs/rag/RAG_품질평가.md) |
+| 평가 항목           | 결과                                                                      | 문서                                           |
+| ------------------- | ------------------------------------------------------------------------- | ---------------------------------------------- |
+| API/UI 테스트       | 157건 중 155건 정상 통과. 2건은 회원가입 비밀번호 정책 미적용 이슈로 확인 | [테스트결과.md](./docs/test/테스트결과.md)     |
+| 배포 화면 UI 테스트 | 버튼, 라우팅, 모달, SSE 응답, 영상 로딩 등 126건 모두 정상 통과           | [테스트결과.md](./docs/test/테스트결과.md)     |
+| RAG 품질 평가       | 질문 분류, 검색 결과 기반 답변, 범위 외 질문 제한 응답 중심으로 평가      | [RAG\_품질평가.md](./docs/rag/RAG_품질평가.md) |
 
 ---
 
