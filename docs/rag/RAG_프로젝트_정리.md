@@ -86,7 +86,7 @@ sequenceDiagram
 
 ## 4. LangGraph 구성의 진화
 
-설계는 단계적으로 발전했다. (상세 다이어그램은 `docs/rag_evolution_all.html` 참고)
+설계는 단계적으로 발전했다. (상세 다이어그램은 [rag_evolution_all.html](../ppt/rag_evolution_all.html) 참고)
 
 1. **기본 그래프** — `START → retrieve → generate → END`
 2. **조건 분기(conditional edge)** — `classify`로 질문 유형별 `retrieve` 분기(general/specific/injury)

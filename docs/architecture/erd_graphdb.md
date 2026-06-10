@@ -123,26 +123,39 @@ erDiagram
     }
 ```
 
-## Neo4j 그래프 스키마
+## Neo4j GraphDB
 
 ```mermaid
 flowchart LR
-    Exercise["Exercise"] -->|TARGETS_PRIMARY| BodyPart["BodyPart"]
+    Exercise["Exercise<br/>운동"] -->|TARGETS_PRIMARY| BodyPart["BodyPart<br/>타겟 부위"]
     Exercise -->|TARGETS_SECONDARY| BodyPart
-    Exercise -->|REQUIRES_EQUIPMENT| Equipment["Equipment"]
-    Exercise -->|HAS_INTENSITY| Intensity["IntensityLevel"]
-    Exercise -->|PART_OF_SPLIT| SplitDay["SplitDay"]
-    Exercise -->|SIMILAR_TO| Exercise
-    Exercise -->|SUBSTITUTE_FOR| Exercise
-    Exercise -->|PROGRESSION_OF| Exercise
+    Exercise -->|REQUIRES_EQUIPMENT| Equipment["Equipment<br/>사용 장비"]
+    Exercise -->|HAS_INTENSITY| Intensity["IntensityLevel<br/>난이도"]
+    Exercise -->|PART_OF_SPLIT| SplitDay["SplitDay<br/>분할 루틴"]
+    Exercise -->|SIMILAR_TO| Similar["Exercise<br/>유사 운동"]
+    Exercise -->|SUBSTITUTE_FOR| Substitute["Exercise<br/>대체 운동"]
+    Exercise -->|PROGRESSION_OF| Progression["Exercise<br/>난이도 progression"]
 ```
 
-| Label | 역할 |
+### 노드
+
+| 노드 | 역할 |
 | --- | --- |
-| Exercise | 5분할 추천 대상 운동 |
+| Exercise | 루틴 추천 대상 운동 |
 | BodyPart | 주/보조 타겟 부위 |
-| Equipment | 장비 필터 |
+| Equipment | 운동에 필요한 장비 |
 | IntensityLevel | 초급/중급/고급 난이도 |
 | SplitDay | 가슴, 등, 하체, 어깨, 팔 분할 |
 
-상세 그래프 명세는 [planfit_graphdb_spec.md](./planfit_graphdb_spec.md)를 참고합니다.
+### 관계
+
+| 관계 | 의미 |
+| --- | --- |
+| `TARGETS_PRIMARY` | 운동의 주 타겟 부위 |
+| `TARGETS_SECONDARY` | 운동의 보조 타겟 부위 |
+| `REQUIRES_EQUIPMENT` | 운동 수행에 필요한 장비 |
+| `HAS_INTENSITY` | 운동 난이도 |
+| `PART_OF_SPLIT` | 5분할 루틴의 어느 요일/부위에 속하는지 |
+| `SIMILAR_TO` | 유사한 자극 또는 동작을 가진 운동 |
+| `SUBSTITUTE_FOR` | 통증, 장비, 장소 조건에 따라 대체 가능한 운동 |
+| `PROGRESSION_OF` | 난이도나 숙련도 progression 관계 |

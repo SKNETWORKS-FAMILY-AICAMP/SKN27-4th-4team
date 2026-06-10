@@ -254,32 +254,6 @@ class GraphQuery:
         """, {"id": exercise_id, "steps": steps})
         return rows[0]["chain"] if rows else []
 
-    # # ── Q5. ARM_SUPERSET — 팔 슈퍼셋 ─────────────────────────────────────
-    # def get_arm_supersets(
-    #     self,
-    #     equip: list[str] = None,
-    #     limit: int = 3,
-    # ) -> list[dict]:
-    #     """이두↔삼두 ARM_SUPERSET 쌍 조회"""
-    #     equip = equip or ["barbell", "dumbbell", "machine", "body"]
-    #     return self._run("""
-    #         MATCH (bi:Exercise)-[:TARGETS_PRIMARY]->(:BodyPart {id: 'bp_biceps'}),
-    #               (bi)-[:ARM_SUPERSET]->(tri:Exercise),
-    #               (tri)-[:TARGETS_PRIMARY]->(:BodyPart {id: 'bp_triceps'})
-    #         WHERE bi.equipment  IN $equip
-    #           AND tri.equipment IN $equip
-    #         RETURN
-    #             bi.id            AS bi_id,
-    #             bi.name_kor      AS bi_name,
-    #             bi.equipment     AS bi_equip,
-    #             bi.spine_loading AS bi_spine,
-    #             tri.id           AS tri_id,
-    #             tri.name_kor     AS tri_name,
-    #             tri.equipment    AS tri_equip,
-    #             tri.spine_loading AS tri_spine
-    #         LIMIT $limit
-    #     """, {"equip": equip, "limit": limit})
-
     # ── Q6. 주간 칼로리 합산 ──────────────────────────────────────────────
     def get_weekly_calories(self, weight: float = 70.0) -> list[dict]:
         """분할별 예상 칼로리 (체중 보정)"""

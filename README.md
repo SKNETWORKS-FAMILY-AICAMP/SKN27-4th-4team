@@ -1,28 +1,21 @@
 # HELBOTIN
 
+- Web: [https://sk-camp.cloud](https://sk-camp.cloud)
+
 <p align="center">
-  <strong>SKN27 4th PROJECT · AI Fitness Routine & Exercise Consultation Service</strong><br />
-  운동 라이브러리, 개인 맞춤 루틴 추천, AI 운동 챗봇을 연결한 운동 루틴 관리 웹 서비스
+  <strong>SKN27 4th PROJECT - AI Fitness Routine & Exercise Consultation Service</strong><br />
+  운동 라이브러리, 개인 맞춤 루틴 추천, AI 운동 챗봇을 연결한 운동 루틴 관리 서비스
 </p>
 
 ---
 
-## Demo
-
-- Web: [https://sk-camp.cloud](https://sk-camp.cloud)
-- 상세 API: [docs/api-spec.md](./docs/api-spec.md)
-
----
-
-## Overview
+## 프로젝트 소개
 
 ### 1. 프로젝트 소개
 
-HELBOTIN은 **헬스 보이 루틴**이라는 의미를 담은 AI 운동 루틴 추천 서비스입니다. 운동 라이브러리, 개인 맞춤 운동 루틴 추천, AI 운동 챗봇을 통해 사용자가 더 쉽고 꾸준하게 운동을 이어갈 수 있도록 돕습니다.
+HELBOTIN은 **헬스 보이 루틴**이라는 의미를 가진 AI 운동 루틴 추천 서비스입니다. 운동 라이브러리, 개인 맞춤 운동 루틴 추천, AI 운동 챗봇을 통해 사용자가 더 쉽고 꾸준하게 운동을 이어갈 수 있도록 돕습니다.
 
-운동을 꾸준히 이어가기 위해서는 **다양성**이 필요합니다. 같은 운동 루틴을 반복하면 몸이 해당 동작에 적응하여 칼로리 소모가 줄어들고, 근육 성장이 정체되는 **플래토(Plateau) 현상**이 발생할 수 있습니다.
-
-> "같은 부위, 다른 자극. 뻔한 루틴을 깨다."
+운동을 꾸준히 이어가기 위해서는 **다양성**이 필요합니다. 같은 루틴을 반복하면 몸이 동작에 적응해 칼로리 소모와 근육 성장이 정체될 수 있고, 단조로운 루틴은 운동 흥미도 떨어뜨립니다.
 
 ### 2. 문제 정의
 
@@ -30,17 +23,17 @@ HELBOTIN은 **헬스 보이 루틴**이라는 의미를 담은 AI 운동 루틴 
 | --------------------- | ------------------------------------------------------ |
 | 운동 경험자           | 반복되는 루틴으로 인한 정체기 및 흥미 저하             |
 | 운동 초보자           | 어떤 운동을 어떻게 시작해야 할지 판단하기 어려움       |
-| 통증·부상 이력 사용자 | 피해야 할 운동과 대체 운동을 구분하기 어려움           |
+| 통증/부상 이력 사용자 | 피해야 할 운동과 대체 운동을 구분하기 어려움           |
 | 공통 사용자           | 운동 자세, 호흡, 주의사항 정보가 여러 곳에 흩어져 있음 |
 
 ### 3. 서비스 소개
 
-| 핵심 기능           | 설명                                                  |
-| ------------------- | ----------------------------------------------------- |
-| 운동 라이브러리     | 900개 이상의 운동 정보, 영상, 자세 가이드 제공        |
-| 개인 맞춤 루틴 추천 | 목표, 수준, 통증, 요일, 시간 기반 주간 루틴 자동 구성 |
-| AI 운동 챗봇        | 운동 질문을 분류하고 RAG 검색 결과 기반 답변 제공     |
-| 루틴 관리           | 수행 체크, 대체 운동 선택, 데일리 메모 저장           |
+| 핵심 기능           | 설명                                                                            |
+| ------------------- | ------------------------------------------------------------------------------- |
+| 운동 라이브러리     | 운동별 영상, 타겟 부위, 난이도, 기구, 자세 가이드를 제공합니다.                 |
+| 개인 맞춤 루틴 추천 | 목표, 체력 수준, 통증 부위, 운동 요일과 시간에 맞는 주간 루틴을 생성합니다.     |
+| AI 운동 챗봇        | 운동 자세, 주의사항, 대체 운동 질문에 RAG 기반으로 답변합니다.                  |
+| 루틴 관리           | 추천 루틴 저장, 수행 체크, 데일리 메모, 사용자 피드백 기반 재추천을 지원합니다. |
 
 ---
 
@@ -49,17 +42,17 @@ HELBOTIN은 **헬스 보이 루틴**이라는 의미를 담은 AI 운동 루틴 
 <table>
   <tr>
     <td align="center"><b>이재희 (팀장)</b></td>
-    <td align="center"><b>주연중</b></td>
-    <td align="center"><b>박창제</b></td>
     <td align="center"><b>김필주</b></td>
     <td align="center"><b>김경수</b></td>
+    <td align="center"><b>주연중</b></td>
+    <td align="center"><b>박창제</b></td>
   </tr>
   <tr>
     <td align="center"><img width="140" height="160" alt="이재희" src="docs/profiles/이재희.gif" /></td>
-    <td align="center"><img width="140" height="160" alt="주연중" src="docs/profiles/주연중.gif" /></td>
-    <td align="center"><img width="140" height="160" alt="박창제" src="docs/profiles/박창제.gif" /></td>
     <td align="center"><img width="140" height="160" alt="김필주" src="docs/profiles/김필주.gif" /></td>
     <td align="center"><img width="140" height="160" alt="김경수" src="docs/profiles/김경수.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="주연중" src="docs/profiles/주연중.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="박창제" src="docs/profiles/박창제.gif" /></td>
   </tr>
   <tr>
     <td align="center">Project Manager</td>
@@ -69,126 +62,112 @@ HELBOTIN은 **헬스 보이 루틴**이라는 의미를 담은 AI 운동 루틴 
     <td align="center">Auth 인증 / 사용자 관리</td>
   </tr>
   <tr>
-    <td align="center">서비스 기획<br/>프론트엔드<br/>AWS 배포</td>
-    <td align="center">사용자 조건 분석<br/>맞춤 루틴 생성<br/>추천 결과 저장·리뷰</td>
+    <td align="center">서비스 기획<br/>기능 검증<br/>AWS 배포</td>
+    <td align="center">사용자 조건 분석<br/>맞춤 루틴 생성<br/>추천 결과 검증/리뷰</td>
     <td align="center">운동 상담 챗봇<br/>RAG 검색 파이프라인<br/>SSE 스트리밍 응답</td>
-    <td align="center">Neo4j 그래프 구축<br/>운동 후보 조회<br/>유사·대체 운동 관계</td>
-    <td align="center">회원가입·로그인<br/>세션/JWT 관리<br/>게스트 사용자 처리</td>
+    <td align="center">Neo4j 그래프 구축<br/>운동 데이터 구조화<br/>유사/대체 운동 관계</td>
+    <td align="center">회원가입/로그인<br/>세션/JWT 관리<br/>게스트 사용자 처리</td>
   </tr>
 </table>
 
 ---
 
-## Architecture
-
 ### 4. 시스템 아키텍처
 
-React/Vite 프론트엔드, Django REST API, PostgreSQL + pgvector, Neo4j, LangGraph 기반 AI 워크플로우로 구성됩니다.
+> React/Vite 프론트엔드, Django REST API, PostgreSQL + pgvector, Neo4j, LangGraph 기반 AI 워크플로우로 구성했습니다.
 
-- 상세 문서: [docs/architecture.md](./docs/architecture.md)
+- 상세 문서 : [docs/architecture/architecture.md](./docs/architecture/architecture.md)
 
 ### 5. AI 시스템
 
 HELBOTIN의 AI 시스템은 두 축으로 구성됩니다.
 
-- **AI 루틴 추천 Agent**: 사용자 조건을 기반으로 GraphDB 후보를 조회하고 루틴 초안을 생성·검증·수정합니다.
-- **RAG 기반 챗봇**: 운동 질문을 분류하고 PostgreSQL + pgvector 검색 결과를 바탕으로 답변합니다.
+> **AI 루틴 추천 Agent**: 사용자 조건을 기반으로 GraphDB 후보를 조회하고 루틴 초안을 생성/검증/수정합니다.
+>
+> **RAG 기반 챗봇**: 운동 질문을 분류하고 PostgreSQL + pgvector 검색 결과를 바탕으로 답변합니다.
 
-- 상세 문서: [docs/architecture.md](./docs/architecture.md), [docs/rag-evaluation.md](./docs/rag-evaluation.md)
+- AI 루틴 추천 : [docs/ai/routine-service.md](./docs/ai/routine-service.md)
+- RAG 기반 챗봇 : [docs/rag/RAG\_품질평가.md](./docs/rag/RAG_품질평가.md)
 
 ### 6. 데이터 모델
 
-사용자, 운동 마스터, 상담 세션, 주간 루틴, 근육 관계, 운동-근육 브릿지 테이블로 구성됩니다.
+사용자, 운동, 상담 세션, 주간 루틴은 PostgreSQL에 저장하고, 운동 간 유사/대체/progression 관계는 Neo4j GraphDB로 탐색합니다.
 
-- ERD: [docs/erd.md](./docs/erd.md)
-- 시퀀스 다이어그램: [docs/sequence-diagram.md](./docs/sequence-diagram.md)
+- ERD 및 GraphDB : [docs/architecture/erd_graphdb.md](./docs/architecture/erd_graphdb.md)
+- 시퀀스 다이어그램: [docs/architecture/sequence-diagram.md](./docs/architecture/sequence-diagram.md)
 
----
+### 7. 성능 평가
 
-## Development
+서비스 동작은 API 테스트와 배포 화면 기준 UI 테스트로 검증했고, RAG 챗봇은 검색 정확도와 답변 품질을 별도로 평가했습니다.
 
-### 7. 기술 스택
+> API/UI 테스트 157건 중 155건 정상 통과, 2건은 회원가입 비밀번호 정책 미적용 이슈로 확인했습니다.
+>
+> 배포 화면 기준 UI 테스트 126건은 모두 정상 통과했습니다.
+>
+> RAG 챗봇은 운동 질문 분류, 검색 결과 기반 답변, 범위 외 질문 제한 응답을 중심으로 평가했습니다.
 
-| 영역     | 기술                                                                |
-| -------- | ------------------------------------------------------------------- |
-| Frontend | React 18, Vite, React Router, Lucide React, React Markdown          |
-| Backend  | Django 4.2, Django REST Framework, Simple JWT, Gunicorn, WhiteNoise |
-| Database | PostgreSQL 16, pgvector, Neo4j, APOC                                |
-| AI       | OpenAI, LangChain, LangGraph, Groq, Ollama                          |
-| DevOps   | Docker Compose, AWS EC2, Nginx, Certbot HTTPS                       |
-
-### 8. 프로젝트 구조
-
-```text
-SKN27-4th-4team/
-├── backend/
-│   ├── api/
-│   ├── config/
-│   ├── data/
-│   ├── db/
-│   └── recommendation_service/
-├── frontend/
-│   ├── public/
-│   └── src/
-├── docs/
-├── docker-compose.yml
-├── docker-compose.prod.yml
-└── README.md
-```
-
-### 9. 실행 방법
-
-```bash
-docker compose up --build
-```
-
-- Frontend: `http://localhost:5173`
-- Backend: `http://localhost:8000`
-- Neo4j Browser: `http://localhost:7474`
-
-운영 배포는 [docs/AWS_DEPLOY.md](./docs/AWS_DEPLOY.md)를 참고합니다.
+- 종합 테스트 결과 : [docs/test/테스트결과.md](./docs/test/테스트결과.md)
+- RAG 품질 평가 : [docs/rag/RAG\_품질평가.md](./docs/rag/RAG_품질평가.md)
 
 ---
 
-## Evaluation
+## 부록
 
-### 10. 성능 평가
+### 8. 참고 문서
 
-서비스 API, 루틴 추천, RAG 챗봇의 동작을 시나리오 기반으로 검증했습니다.
+- [API 명세](./docs/api/api-spec.md)
+- [화면 설계](./docs/product/screen-design.md)
+- [실행/배포 방법](./docs/deploy/aws_deploy.md)
 
-- 테스트 시나리오: [docs/test-scenario.md](./docs/test-scenario.md)
-- RAG 품질평가: [docs/rag-evaluation.md](./docs/rag-evaluation.md)
+# 회고
 
-### 11. 향후 계획
+<details>
+<summary><b>이재희 (클릭하여 펼치기)</b></summary>
+<br>
 
-- 루틴 추천 결과에 대한 정량 평가 지표와 테스트 케이스 확대
-- 통증·부상 조건의 GraphDB 후보 단계 필터링 강화
-- 상담 RAG에서 운동별 단일 벡터 구조를 다중 청크 검색 구조로 개선
-- RAGAS, Hit Rate, MRR 기반 RAG 품질 리포트 자동화
-- 모바일 운동 기록 경험 및 반응형 UI 개선
-- AWS 운영 환경에서 Secrets Manager 또는 Parameter Store 적용
+</details>
+<br>
 
----
+<details>
+<summary><b>주연중 (클릭하여 펼치기)</b></summary>
+<br>
 
-## Appendix
+> 이번 프로젝트는 제 경험 부족을 많이 느낄 수 있었던 프로젝트였습니다. 예상했던 문제보다 오히려 예상하지 못한 부분에서 다양한 이슈가 발생했고, 이를 해결하는 과정에서 많은 것을 배울 수 있었습니다.
+>
+> 초기에는 LLM 중심의 Supervisor 구조를 설계하여 구현하고자 했습니다. 하지만 사용한 모델의 성능이 해당 구조를 안정적으로 감당하기에는 부족했던 탓인지, 결과를 제대로 생성하지 못하고 오류가 반복적으로 발생했습니다. 이를 보완하기 위해 여러 Rule-Based 로직을 추가했는데, 프로젝트가 진행될수록 이러한 예외 처리 코드들이 누적되면서 오히려 유지보수와 안정성 측면에서 새로운 문제를 만들어냈습니다. 이 경험을 통해 초기 설계 단계에서 보다 치밀하게 구조를 검토하는 것이 얼마나 중요한지 체감할 수 있었습니다.
+>
+> 또한 서비스에 적합한 아키텍처를 선택하는 것 역시 매우 중요하다는 점을 배웠습니다. 프로젝트 후반부로 갈수록 처음 설계했던 Supervisor 기반 LangGraph 구조에서 잦은 오류가 발생했고, 그 과정에서 "과연 이 구조가 실제 서비스 환경을 충분히 고려하여 설계된 것인가?"라는 의문을 갖게 되었습니다. 결국 다른 접근 방식이나 구조를 선택했다면 더 좋은 결과를 얻을 수 있었을 것이라는 아쉬움도 남았습니다.
+>
+> 특히 처음이라는 이유로 새로운 구조를 시도하는 데 집중한 나머지, 설계 단계에서 팀원들과 충분히 논의하지 못했던 점은 가장 아쉬운 부분 중 하나였습니다. 기술적인 완성도뿐만 아니라 팀원들과의 의사소통과 설계 검증 과정 역시 프로젝트 성공에 중요한 요소라는 사실을 다시 한번 깨달을 수 있었습니다.
+>
+> 그럼에도 불구하고 이번 프로젝트는 제가 처음으로 프로젝트의 한 부분을 주도적으로 맡아 끝까지 진행해 본 경험이었다는 점에서 매우 뜻깊었습니다. 개발 역량뿐만 아니라 설계, 의사소통, 의사결정 등 코딩 외적인 부분에서도 많은 배움을 얻을 수 있었습니다.
 
-### 12. 참고 문서
+</details>
+<br>
 
-#### 상세 문서
+<details>
+<summary><b>박창제 (클릭하여 펼치기)</b></summary>
+<br>
 
-- [아키텍처](./docs/architecture.md)
-- [ERD](./docs/erd.md)
-- [시퀀스 다이어그램](./docs/sequence-diagram.md)
-- [API 명세](./docs/api-spec.md)
-- [화면 설계](./docs/screen-design.md)
-- [테스트 시나리오](./docs/test-scenario.md)
-- [RAG 품질평가](./docs/rag-evaluation.md)
-- [회고](./docs/retrospective.md)
+</details>
+<br>
 
-#### 기존 참고 문서
+<details>
+<summary><b>김필주 (클릭하여 펼치기)</b></summary>
+<br>
 
-- [루틴 추천 서비스](./docs/ROUTINE_RECOMMENDATION_SERVICE.md)
-- [RAG 프로젝트 정리](./docs/RAG_프로젝트_정리.md)
-- [RAG 챗봇 기술명세](./docs/RAG_챗봇_기술명세.md)
-- [GraphDB 명세](./docs/planfit_graphdb_spec.md)
-- [서비스 테스트 목록](./docs/SERVICE_AB_TEST_LIST.md)
+> 이번 작업은 Neo4j 그래프 DB를 활용해 운동 데이터를 구조화하고 Cypher 쿼리를 작성하는 것이었다. 그래프 DB 자체가 처음이다 보니 초반에는 Cypher 쿼리 문법이 낯설고 어렵게 느껴졌다. 그래서 학습 자료를 다시 찾아보며 그래프 DB가 어떻게 구성되는지, 쿼리는 어떤 방식으로 작성해야 하는지를 처음부터 다시 정리하는 시간을 가졌다. 돌아가는 것 같았지만 덕분에 기본 개념을 탄탄하게 잡을 수 있었다.
+>
+> 작업을 이어가던 중 하체(LEG) 분할이 제대로 처리되지 않는 문제를 발견했다. 다른 분할과 동일하게 동작해야 함에도 해당 케이스만 누락된 상태였고, 원인을 파악한 뒤 수정할 수 있었다. 또 하나의 실수는 운동 난이도를 결정하는 기준이었다. `difficulty` 필드를 사용해야 하는데 `cal_per_min`(칼로리 소비량)으로 난이도를 판단하는 로직이 들어가 있었다. 칼로리와 난이도가 완전히 무관하지는 않지만, 이를 난이도의 기준으로 삼는 것은 명백한 오류였다. 다행히 일찍 발견해서 수정할 수 있었다.
+>
+> 이번 작업을 통해 그래프 DB가 관계형 DB와 어떻게 다른지, 노드와 엣지를 어떻게 설계해야 하는지를 몸으로 배운 것 같다. 처음에는 낯설었지만 직접 오류를 마주하고 고쳐가면서 개념이 자리를 잡았다. 잘 몰랐던 영역을 실제 작업을 통해 익힐 수 있었던 좋은 경험이었다.
+
+</details>
+<br>
+<details>
+<summary><b>김경수 (클릭하여 펼치기)</b></summary>
+<br>
+
+> 실습으로만 경험해 봤던 django의 UX일부 작업과 로그인 등의 백앤드 처리 작업을 진행해 볼 수 있어서 좋았습니다. 이전에는 해 보지 못했던 작업 파트라 신선한 경험이었습니다. 이 경험을 살려서 다른 프로젝트에서도 (숙련도 문제로 LLM 도움은 받겠지만) 작업을 해 볼 수 있을 것 같습니다. 실습만 해보는 것이랑 실제 한번 작업을 진행해 본 것과는 많은 차이가 난다는 점도 경험할 수 있어 좋았습니다. 이번 프로젝트 진행에서 얻은 가장 큰 성과 중 하나는 코딩 작업에 있어서 진행을 가장 작은 작업 단위로 나누고 단계적으로 작업을 진행하는 요령이 생겼다는 점입니다. 생각해보면 기획에서는 자연스럽게 했던 방식인데 코딩에서는 적용하지 않고 있었고 모든 부분을 다 고려해 가면서 코딩을 하거나 기획을 세운 내용을 LLM에게 밀어 넣어서 작업을 지시하거나 샘플을 얻는 정도에 그쳤었는데 이번에는 그렇게 하지 않고 해야 하는 작업들을 작은 단위로 쪼개서 나열하고 작업 순서대로 배치한 다음 (계획, 작업, 테스트) 사이클을 반복 했습니다. 이렇게 작업하다 보니 코딩 실력은 모르겠지만 코딩 작업 자체에 대해서는 이해가 이전 보다 올라간 느낌 입니다.
+
+</details>

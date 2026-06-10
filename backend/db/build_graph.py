@@ -441,19 +441,6 @@ class GraphBuilder:
                     count += 1
         print(f"       → {count}개 생성")
 
-    # # ── 11. ARM_SUPERSET 엣지 ─────────────────────────────────────────────
-    # def create_arm_superset_edges(self):
-    #     print("  [14] ARM_SUPERSET 엣지 생성...")
-    #     for bi_id, tri_id in ARM_SUPERSET_PAIRS:
-    #         self.run("""
-    #             MATCH (bi:Exercise  {id: $bi_id})
-    #             MATCH (tri:Exercise {id: $tri_id})
-    #             MERGE (bi)-[:ARM_SUPERSET]->(tri)
-    #             MERGE (tri)-[:ARM_SUPERSET]->(bi)
-    #         """, {"bi_id": bi_id, "tri_id": tri_id})
-    #     print(f"       → {len(ARM_SUPERSET_PAIRS)}쌍 생성")
-
-
 # ── 메인 ────────────────────────────────────────────────────────────────────
 def main():
     print("=" * 55)
@@ -488,7 +475,6 @@ def main():
         builder.create_similar_edges(enriched)              # related_exercises 파싱 -> SIMILAR_TO
         builder.create_substitute_edges(edges, five_ids)    # exercise_edges.json 파싱 -> SUBSTITUTE_FOR
         builder.create_progression_edges(five_split)        # difficulty 기반 PROGRESSION_OF 엣지 생성
-        # builder.create_arm_superset_edges()                 # 팔 운동 슈퍼셋 엣지 생성(삭제)
 
         print("\n" + "=" * 55)
         print("  [OK] 완료")
