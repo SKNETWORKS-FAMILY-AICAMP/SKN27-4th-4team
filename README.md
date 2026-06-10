@@ -39,18 +39,18 @@ HELBOTIN은 **헬스 보이 루틴**이라는 의미를 가진 AI 운동 루틴 
 
 <table>
   <tr>
-    <td align="center"><b>이재희 (팀장)</b></td>
-    <td align="center"><b>김필주</b></td>
-    <td align="center"><b>김경수</b></td>
+    <td align="center"><b>이재희</b></td>
     <td align="center"><b>주연중</b></td>
     <td align="center"><b>박창제</b></td>
+    <td align="center"><b>김필주</b></td>
+    <td align="center"><b>김경수</b></td>
   </tr>
   <tr>
     <td align="center"><img width="140" height="160" alt="이재희" src="docs/Profiles/이재희.gif" /></td>
-    <td align="center"><img width="140" height="160" alt="김필주" src="docs/Profiles/김필주.gif" /></td>
-    <td align="center"><img width="140" height="160" alt="김경수" src="docs/Profiles/김경수.gif" /></td>
     <td align="center"><img width="140" height="160" alt="주연중" src="docs/Profiles/주연중.gif" /></td>
     <td align="center"><img width="140" height="160" alt="박창제" src="docs/Profiles/박창제.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="김필주" src="docs/Profiles/김필주.gif" /></td>
+    <td align="center"><img width="140" height="160" alt="김경수" src="docs/Profiles/김경수.gif" /></td>
   </tr>
   <tr>
     <td align="center">Project Manager</td>
